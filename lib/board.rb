@@ -45,7 +45,7 @@ class Board
     self[*position].piece = new_piece
     update_pieces
 
-    return true
+    return new_piece
   end
 
 
