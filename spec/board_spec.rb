@@ -48,12 +48,12 @@ RSpec.describe Board do
       board.move_piece([4, 4], [4, 7])
 
       expect(board[4, 7].piece).to be_instance_of(Rook)
-      expect(board[4, 7].piece.color).to be "w"
-      expect(board[4, 7].piece.position).to be [4, 7]
+      expect(board[4, 7].piece.color).to eq "w"
+      expect(board[4, 7].piece.position).to eq [4, 7]
       expect(board[4, 4].piece).to be_nil
     end
 
-    xit "returns a captured piece" do
+    it "returns a captured piece" do
       board = Board.new
       board.place_piece([3, 3], piece: :Rook, color: "b")
       # piece for capturing
@@ -61,10 +61,10 @@ RSpec.describe Board do
 
       captured_piece = board.move_piece([3, 3], [7, 3])
 
-      moved_piece = board[7, 3]
+      moved_piece = board[7, 3].piece
 
       expect(captured_piece).to be_instance_of(Rook)
-      expect(capture_piece.color).to eq "w"
+      expect(captured_piece.color).to eq "w"
       expect(captured_piece.position).to eq [nil, nil]
 
       expect(moved_piece).to be_instance_of(Rook)
@@ -72,7 +72,7 @@ RSpec.describe Board do
       expect(moved_piece.position).to eq [7, 3]
     end
 
-    xit "adds a captured piece to the captured pieces" do
+    it "adds a captured piece to the captured pieces" do
       board = Board.new
       board.place_piece([0, 7], piece: :Rook, color: "b")
       # piece for capturing
@@ -82,7 +82,7 @@ RSpec.describe Board do
         board.captured_pieces.length }.by(1)
     end
 
-    xit "doesn't change the captured pieces if no piece was captured" do
+    it "doesn't change the captured pieces if no piece was captured" do
       board = Board.new
       board.place_piece([0, 7], piece: :Rook, color: "b")
 
@@ -90,7 +90,7 @@ RSpec.describe Board do
         board.captured_pieces.length }
     end
 
-    xit "returns false if there is no piece to move" do
+    it "returns false if there is no piece to move" do
       board = Board.new
 
       result = board.move_piece([0, 0], [4, 5])
@@ -98,7 +98,7 @@ RSpec.describe Board do
       expect(result).to eq false
     end
 
-    xit "returns false if the end position is out of bounds" do
+    it "returns false if the end position is out of bounds" do
       board = Board.new
       board.place_piece([2, 5], piece: :Rook , color: "w")
 
@@ -107,7 +107,7 @@ RSpec.describe Board do
       expect(result).to eq false
     end
 
-    xit "returns false if the end position is not a legal move" do
+    it "returns false if the end position is not a legal move" do
       board = Board.new
       board.place_piece([2, 5], piece: :Rook , color: "b")
 
@@ -116,7 +116,7 @@ RSpec.describe Board do
       expect(result).to eq false
     end
 
-    xit "returns false if a piece is in the way" do
+    it "returns false if a piece is in the way" do
       board = Board.new
       board.place_piece([2, 5], piece: :Rook, color: "w")
       # piece in the way
@@ -127,7 +127,7 @@ RSpec.describe Board do
       expect(result).to eq false
     end
 
-    xit "doesn't move the piece if the move isn't valid" do
+    it "doesn't move the piece if the move isn't valid" do
       board = Board.new
       board.place_piece([2, 5], piece: :Rook, color: "w")
       # piece in the way
@@ -166,6 +166,7 @@ RSpec.describe Board do
       expect(board[4, 6].piece.position).to be [4, 6]
     end
 
+    # these may go into another method
     xit "can castle long"
 
     xit "can caste short"

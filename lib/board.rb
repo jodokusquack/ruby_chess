@@ -4,10 +4,10 @@ Dir['./lib/pieces/*.rb'].each { |file| require file }
 
 class Board
 
-  attr_accessor :black_pieces, :white_pieces, :squares
+  attr_accessor :black_pieces, :white_pieces, :squares, :captured_pieces
 
 
-  def initialize(squares: nil)
+  def initialize(squares: nil, captured_pieces: [])
     # create a default value for the squares
     squares_default = (0..7).collect do |i|
       (0..7).collect do |j|
@@ -17,6 +17,7 @@ class Board
     end
     @squares = squares || squares_default
     update_pieces
+    @captured_pieces = captured_pieces
   end
 
   def [](col, row)
@@ -46,6 +47,34 @@ class Board
     update_pieces
 
     return new_piece
+  end
+
+  def move_piece(from , to)
+    piece = self[*from].piece
+
+    return false if piece.nil?
+    return false if !piece.possible_moves(self).include?(to)
+    # return false if in check afterwards
+
+    # first copy the piece that is at "to"
+    old_piece = self[*to].piece
+
+    # then copy over the piece to move (from "from" to "to")
+    self[*to].piece = piece
+
+    # update the position of the moved piece
+    piece.position = to
+
+    #delete the old piece
+    self[*from].piece = nil
+
+    # add the captured piece to the captured_pieces
+    unless old_piece.nil?
+      old_piece.position = [nil, nil]
+      @captured_pieces << old_piece
+    end
+
+    return old_piece || true
   end
 
 
