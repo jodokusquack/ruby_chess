@@ -25,4 +25,12 @@ class Piece
     @row = row_number
     @position[1] = row_number
   end
+
+  def ==(other)
+    if other.kind_of?(Piece)
+      self.position == other.position and self.color == other.color
+    else
+      false
+    end
+  end
 end
