@@ -90,6 +90,14 @@ RSpec.describe Board do
         board.captured_pieces.length }
     end
 
+    xit "returns false if there is no piece to move" do
+      board = Board.new
+
+      result = board.move_piece([0, 0], [4, 5])
+
+      expect(result).to eq false
+    end
+
     xit "returns false if the end position is out of bounds" do
       board = Board.new
       board.place_piece([2, 5], piece: :Rook , color: "w")
