@@ -1,4 +1,4 @@
-require './lib/piece.rb'
+require './lib/pieces/piece.rb'
 
 RSpec.describe Piece do
   describe "#position" do
