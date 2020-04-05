@@ -21,6 +21,8 @@ class Board
   end
 
   def [](col, row)
+    return nil if col < 0 or col > 7
+    return nil if row < 0 or row > 7
     @squares[col][row]
   end
 
@@ -103,3 +105,4 @@ puts "Black:"
 puts b.black_pieces
 puts "White:"
 puts b.white_pieces
+p b[1, 9]
