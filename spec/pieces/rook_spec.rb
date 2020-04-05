@@ -37,16 +37,14 @@ RSpec.describe Rook do
   end
 
   context "is white and in the middle with other pieces on board" do
-
-    subject(:rook) { Rook.new(position: [4, 4], color: "w") }
-
     describe "#possible_moves" do
       it "returns a list of possible moves" do
         board = Board.new
         board.place_piece([1, 4], piece: :Rook, color: "b")
         board.place_piece([4, 5], piece: :Rook, color: "w")
 
-        moves = rook.possible_moves(board)
+        board.place_piece([4, 4], piece: :Rook, color: "w")
+        moves = board[4, 4].piece.possible_moves(board)
 
         expect(moves).to match_array([
           [1, 4], [2, 4], [3, 4],
@@ -54,9 +52,6 @@ RSpec.describe Rook do
           [4, 3], [4, 2], [4, 1], [4, 0]
         ])
       end
-
     end
   end
-
-
 end
