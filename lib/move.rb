@@ -2,17 +2,17 @@ require_relative './pieces/pawn.rb'
 
 class Move
 
-  attr_accessor :piece, :from, :to
+  attr_accessor :piece, :from, :to, :takes
 
-  def initialize(piece, from:, to:)
+  def initialize(piece, from:, to:, takes: false)
     @piece = piece
     @from = from
     @to = to
+    @takes = takes
   end
 
   def en_passant?
-    distance = (@to[1] - @from[1]).abs
-    @piece.instance_of?(Pawn) and distance == 2
+    @piece.instance_of?(Pawn) and (@to[1] - @from[1]).abs == 2
   end
 
   def to_s

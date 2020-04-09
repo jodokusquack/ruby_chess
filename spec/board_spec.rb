@@ -40,7 +40,7 @@ RSpec.describe Board do
     end
   end
 
-  describe "#move" do
+  describe "#move_piece" do
     it "moves a piece from one position to another" do
       board = Board.new
       board.place_piece([4, 4], piece: :Rook, color: "w")
@@ -177,14 +177,16 @@ RSpec.describe Board do
       board = Board.new
       board.place_piece([5, 1], piece: :Pawn, color: "w")
       board.place_piece([4, 3], piece: :Pawn, color: "b")
-      board.move([5, 1], [5, 3])
+      board.move_piece([5, 1], [5, 3])
 
       captured = board.move_piece([4, 3], [5, 2])
 
       expect(captured).to be_instance_of(Pawn)
       expect(captured.color).to eq "w"
       expect(board[5, 3].piece).to be_nil
+      expect(board[5, 2].piece.color).to eq "b"
       expect(board.captured_pieces.length).to be 1
+      expect(board.captured_pieces[0].color).to eq "w"
     end
 
     it "asks for a pawn to be promoted when it reaches the end row"

@@ -54,6 +54,9 @@ class Board
   end
 
   def move_piece(from , to)
+    # assume that no piece will be taken
+    takes = false
+
     piece = self[*from].piece
 
     return false if piece.nil?
@@ -72,19 +75,31 @@ class Board
     #delete the old piece
     self[*from].piece = nil
 
+    # if the last piece from the last move can be captured by en passant
+    # and the current piece is a Pawn, check if this was the case
+    if piece.instance_of?(Pawn) and last_move.en_passant?
+      other_position = last_move.to
+      if (to[1] - other_position[1]).abs == 1 and to[0] == other_position[0]
+        old_piece = self[*other_position].piece
+        self[*other_position].piece = nil
+      end
+    end
+
     # add the captured piece to the captured_pieces
     unless old_piece.nil?
       old_piece.position = [nil, nil]
       @captured_pieces << old_piece
+      # set takes to true if a piece was captured
+      takes = true
     end
 
-    prev_moves << Move.new(piece, from: from, to: to)
+    prev_moves << Move.new(piece, from: from, to: to, takes: takes)
 
     return old_piece || true
   end
 
   def last_move
-    prev_moves[-1]
+    prev_moves[-1] or Move.new("New Game", from:[], to:[])
   end
 
   def print_moves
