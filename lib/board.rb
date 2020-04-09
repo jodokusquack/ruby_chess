@@ -1,13 +1,14 @@
 require_relative './square.rb'
 require_relative './player.rb'
+require_relative './move.rb'
 Dir['./lib/pieces/*.rb'].each { |file| require file }
 
 class Board
 
-  attr_accessor :black_pieces, :white_pieces, :squares, :captured_pieces
+  attr_accessor :black_pieces, :white_pieces, :squares, :captured_pieces, :prev_moves
 
 
-  def initialize(squares: nil, captured_pieces: [])
+  def initialize(squares: nil, captured_pieces: [], prev_moves: [])
     # create a default value for the squares
     squares_default = (0..7).collect do |i|
       (0..7).collect do |j|
@@ -18,6 +19,7 @@ class Board
     @squares = squares || squares_default
     update_pieces
     @captured_pieces = captured_pieces
+    @prev_moves = prev_moves
   end
 
   def [](col, row)
@@ -76,9 +78,20 @@ class Board
       @captured_pieces << old_piece
     end
 
+    prev_moves << Move.new(piece, from: from, to: to)
+
     return old_piece || true
   end
 
+  def last_move
+    prev_moves[-1]
+  end
+
+  def print_moves
+    prev_moves.reverse.each do |move|
+      puts move
+    end
+  end
 
   private
 

@@ -167,10 +167,34 @@ RSpec.describe Board do
     end
 
     # these may go into another method
-    xit "can castle long"
+    it "can castle long"
 
-    xit "can caste short"
+    it "can caste short"
 
-    xit "doesn't allow castleing over check"
+    it "doesn't allow castleing over check"
+
+    it "can take a pawn en passant" do
+      board = Board.new
+      board.place_piece([5, 1], piece: :Pawn, color: "w")
+      board.place_piece([4, 3], piece: :Pawn, color: "b")
+      board.move([5, 1], [5, 3])
+
+      captured = board.move_piece([4, 3], [5, 2])
+
+      expect(captured).to be_instance_of(Pawn)
+      expect(captured.color).to eq "w"
+      expect(board[5, 3].piece).to be_nil
+      expect(board.captured_pieces.length).to be 1
+    end
+
+    it "asks for a pawn to be promoted when it reaches the end row"
+
+    it "adds the move to the array of previous moves" do
+      board = Board.new
+      board.place_piece([4, 4], piece: :Queen, color: "b")
+
+      expect { board.move_piece([4, 4], [4, 5]) }.to change {
+        board.prev_moves.length }.by(1)
+    end
   end
 end
