@@ -65,7 +65,6 @@ RSpec.describe Board do
 
       expect(captured_piece).to be_instance_of(Rook)
       expect(captured_piece.color).to eq "w"
-      expect(captured_piece.position).to eq [nil, nil]
 
       expect(moved_piece).to be_instance_of(Rook)
       expect(moved_piece.color).to eq "b"
@@ -262,6 +261,58 @@ RSpec.describe Board do
       check = board.check?("w")
 
       expect(check).to eq false
+    end
+  end
+
+  describe "#take_back_turn" do
+    it "can take back a simple move" do
+      board = Board.new
+      board.place_piece([4, 4], piece: :Rook, color: "b")
+      board.move_piece([4, 4], [3, 4])
+
+      board.take_back_turn
+
+      expect(board[4, 4].piece.position).to eq [4, 4]
+      expect(board[3, 4].piece).to eq nil
+    end
+
+    it "can take back a turn where a piece was captured" do
+      board = Board.new
+      board.place_piece([4, 4], piece: :Rook, color: "b")
+      board.place_piece([3, 4], piece: :Rook, color: "w")
+      board.move_piece([4, 4], [3, 4])
+
+      expect { board.take_back_turn }.to change{ board[3, 4].piece }
+      expect(board[4, 4].piece.position).to eq [4, 4]
+      expect(board[4, 4].piece.color).to eq "b"
+      expect(board[3, 4].piece.position).to eq [3, 4]
+      expect(board[3, 4].piece.color).to eq "w"
+    end
+
+    it "updates the pieces after taking back a turn" do
+      board = Board.new
+      board.place_piece([2, 7], piece: :King, color: "w")
+      board.place_piece([2, 6], piece: :Queen, color: "b")
+      board.move_piece([2, 7], [2, 6])
+      expect(board.check?("w")).to eq false
+
+      expect { board.take_back_turn }.to change {
+        board.black_pieces.length }.by(1)
+      expect(board.captured_pieces).to be_empty
+    end
+
+    it "doesn't mess with en passant" do
+      board = Board.new
+      board.place_piece([0, 1], piece: :Pawn, color: "w")
+      board.place_piece([1, 3], piece: :Pawn, color: "b")
+      board.move_piece([0, 1], [0, 3])
+      board.move_piece([1, 3], [0, 2])
+
+      expect { board.take_back_turn }.to change {
+        board.captured_pieces.length }.by(-1)
+      expect(board[1, 3].piece.possible_moves(board)).to match_array([
+        [1, 2], [0, 2]
+      ])
     end
   end
 end

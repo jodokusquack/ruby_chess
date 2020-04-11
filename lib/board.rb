@@ -88,10 +88,9 @@ class Board
 
     # add the captured piece to the captured_pieces
     unless old_piece.nil?
-      old_piece.position = [nil, nil]
       @captured_pieces << old_piece
       # set takes to true if a piece was captured
-      takes = true
+      takes = old_piece
     end
 
     prev_moves << Move.new(piece, from: from, to: to, takes: takes)
@@ -100,8 +99,16 @@ class Board
     return old_piece || true
   end
 
+  def take_back_turn
+    move = prev_moves.pop
+
+    move.reverse(self)
+
+    update_pieces
+  end
+
   def last_move
-    prev_moves[-1] or Move.new("New Game", from:[], to:[])
+    prev_moves[-1] or Move.new("New Game", from:[], to:[], takes: false)
   end
 
   def print_moves
