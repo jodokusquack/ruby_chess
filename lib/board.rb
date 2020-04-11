@@ -8,7 +8,7 @@ class Board
   attr_accessor :black_pieces, :white_pieces, :squares, :captured_pieces, :prev_moves
 
 
-  def initialize(squares: nil, captured_pieces: [], prev_moves: [])
+  def initialize(squares: nil, captured_pieces: [], prev_moves: [], current_player: "w")
     # create a default value for the squares
     squares_default = (0..7).collect do |i|
       (0..7).collect do |j|
@@ -20,6 +20,7 @@ class Board
     update_pieces
     @captured_pieces = captured_pieces
     @prev_moves = prev_moves
+    @current_player = current_player
   end
 
   def [](col, row)
@@ -94,6 +95,7 @@ class Board
     end
 
     prev_moves << Move.new(piece, from: from, to: to, takes: takes)
+    update_pieces
 
     return old_piece || true
   end
@@ -108,7 +110,43 @@ class Board
     end
   end
 
+  def check?(color)
+    if color == "w"
+      white_in_check?
+    else
+      black_in_check?
+    end
+  end
+
+  def white_in_checkmate?
+    # should be true if all white_pieces have no legal_moves
+  end
+
   private
+
+  def white_in_check?
+    white_king = @white_pieces.find { |piece| piece.instance_of?(King) }
+
+    return false if white_king.nil?
+
+    check = @black_pieces.find do |piece|
+      piece.possible_moves(self).include? white_king.position
+    end
+
+    return !!check
+  end
+
+  def black_in_check?
+    black_king = @black_pieces.find { |piece| piece.instance_of?(King) }
+
+    return false if black_king.nil?
+
+    check = @white_pieces.find do |piece|
+      piece.possible_moves(self).include? black_king.position
+    end
+
+    return !!check
+  end
 
   def update_pieces
     @white_pieces = []

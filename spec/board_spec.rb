@@ -82,12 +82,25 @@ RSpec.describe Board do
         board.captured_pieces.length }.by(1)
     end
 
+    it "updates the pieces-array" do
+      board = Board.new
+      board.place_piece([4, 4], piece: :Rook, color: "b")
+      board.place_piece([0, 7], piece: :Rook, color: "b")
+      # piece for capturing
+      board.place_piece([5, 7], piece: :Rook, color: "w")
+
+      expect { board.move_piece([5, 7], [0, 7]) }.to change {
+        board.black_pieces.length }.by(-1)
+    end
+
     it "doesn't change the captured pieces if no piece was captured" do
       board = Board.new
       board.place_piece([0, 7], piece: :Rook, color: "b")
 
       expect { board.move_piece([0, 7], [0, 0]) }.to_not change {
         board.captured_pieces.length }
+      expect { board.move_piece([0, 7], [0, 0]) }.to_not change {
+        board.black_pieces }
     end
 
     it "returns false if there is no piece to move" do
@@ -140,6 +153,30 @@ RSpec.describe Board do
       expect(board[2, 5].piece.position).to eq [2, 5]
     end
 
+    it "can take a pawn en passant" do
+      board = Board.new
+      board.place_piece([5, 1], piece: :Pawn, color: "w")
+      board.place_piece([4, 3], piece: :Pawn, color: "b")
+      board.move_piece([5, 1], [5, 3])
+
+      captured = board.move_piece([4, 3], [5, 2])
+
+      expect(captured).to be_instance_of(Pawn)
+      expect(captured.color).to eq "w"
+      expect(board[5, 3].piece).to be_nil
+      expect(board[5, 2].piece.color).to eq "b"
+      expect(board.captured_pieces.length).to be 1
+      expect(board.captured_pieces[0].color).to eq "w"
+    end
+
+    it "adds the move to the array of previous moves" do
+      board = Board.new
+      board.place_piece([4, 4], piece: :Queen, color: "b")
+
+      expect { board.move_piece([4, 4], [4, 5]) }.to change {
+        board.prev_moves.length }.by(1)
+    end
+
     xit "doesn't allow to move into check" do
       board = Board.new
       board.place_piece([4, 3], piece: :Rook, color: "w")
@@ -173,30 +210,58 @@ RSpec.describe Board do
 
     it "doesn't allow castleing over check"
 
-    it "can take a pawn en passant" do
-      board = Board.new
-      board.place_piece([5, 1], piece: :Pawn, color: "w")
-      board.place_piece([4, 3], piece: :Pawn, color: "b")
-      board.move_piece([5, 1], [5, 3])
-
-      captured = board.move_piece([4, 3], [5, 2])
-
-      expect(captured).to be_instance_of(Pawn)
-      expect(captured.color).to eq "w"
-      expect(board[5, 3].piece).to be_nil
-      expect(board[5, 2].piece.color).to eq "b"
-      expect(board.captured_pieces.length).to be 1
-      expect(board.captured_pieces[0].color).to eq "w"
-    end
 
     it "asks for a pawn to be promoted when it reaches the end row"
+  end
 
-    it "adds the move to the array of previous moves" do
+  describe "#check?" do
+    it "can tell if white is in check" do
       board = Board.new
-      board.place_piece([4, 4], piece: :Queen, color: "b")
+      board.place_piece([3, 1], piece: :King, color: "w")
+      board.place_piece([3, 2], piece: :Pawn, color: "w")
+      board.place_piece([2, 2], piece: :Pawn, color: "b")
+      board.place_piece([6, 4], piece: :Bishop, color: "b")
 
-      expect { board.move_piece([4, 4], [4, 5]) }.to change {
-        board.prev_moves.length }.by(1)
+      check = board.check?("w")
+
+      expect(check).to eq true
+    end
+
+    it "can tell if white is not in check" do
+      board = Board.new
+      board.place_piece([3, 1], piece: :King, color: "w")
+      board.place_piece([3, 2], piece: :Pawn, color: "w")
+      board.place_piece([4, 2], piece: :Knight, color: "w")
+      board.place_piece([3, 3], piece: :Rook, color: "b")
+      board.place_piece([6, 4], piece: :Bishop, color: "b")
+
+      check = board.check?("w")
+
+      expect(check).to eq false
+    end
+
+    it "can tell if black is in check" do
+      board = Board.new
+      board.place_piece([4, 7], piece: :Knight, color: "w")
+      board.place_piece([4, 6], piece: :Queen, color: "b")
+      board.place_piece([4, 5], piece: :Rook, color: "b")
+      board.place_piece([5, 5], piece: :King, color: "b")
+
+      check = board.check?("b")
+
+      expect(check).to eq true
+    end
+
+    it "can tell if black is not in check" do
+      board = Board.new
+      board.place_piece([4, 7], piece: :Queen, color: "w")
+      board.place_piece([4, 6], piece: :Queen, color: "b")
+      board.place_piece([4, 5], piece: :Rook, color: "b")
+      board.place_piece([5, 5], piece: :King, color: "b")
+
+      check = board.check?("w")
+
+      expect(check).to eq false
     end
   end
 end
