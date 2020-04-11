@@ -54,4 +54,41 @@ RSpec.describe Rook do
       end
     end
   end
+
+  describe "#legal_moves" do
+    it "is the same as the possible_moves when there is no check" do
+      board = Board.new
+      board.place_piece([1, 0], piece: :King, color: "w")
+      board.place_piece([2, 0], piece: :Rook, color: "w")
+      board.place_piece([2, 2], piece: :Knight, color: "w")
+
+      possible = board[2, 0].piece.possible_moves(board)
+      legal    = board[2, 0].piece.legal_moves(board)
+
+      expect(legal).to eq possible
+    end
+
+    it "returns only legal moves when there is a check" do
+      board = Board.new
+      board.place_piece([1, 0], piece: :King, color: "w")
+      board.place_piece([2, 0], piece: :Rook, color: "w")
+      board.place_piece([2, 2], piece: :Knight, color: "b")
+
+      legal    = board[2, 0].piece.legal_moves(board)
+
+      expect(legal).to match_array([[2, 2]])
+    end
+
+    it "can also be empty if no moves are legal" do
+      board = Board.new
+      board.place_piece([1, 0], piece: :King, color: "w")
+      board.place_piece([2, 0], piece: :Rook, color: "w")
+      board.place_piece([2, 2], piece: :Knight, color: "b")
+      board.place_piece([7, 0], piece: :Queen, color: "b")
+
+      legal    = board[2, 0].piece.legal_moves(board)
+
+      expect(legal).to be_empty
+    end
+  end
 end

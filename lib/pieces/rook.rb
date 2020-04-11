@@ -2,6 +2,14 @@ require_relative './piece.rb'
 
 class Rook < Piece
 
+  def to_s
+    if @color == "w"
+      "♖"
+    else
+      "♜"
+    end
+  end
+
   def possible_moves(board)
     moves = []
 
@@ -56,16 +64,4 @@ class Rook < Piece
 
     return moves
   end
-
-  def to_s
-    if @color == "w"
-      "♖"
-    else
-      "♜"
-    end
-  end
-
-  private
-
-
 end
