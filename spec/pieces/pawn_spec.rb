@@ -8,7 +8,10 @@ RSpec.describe Pawn do
         it "returns a list of all possible moves" do
           board = double("Board")
           square = double("Square")
+          last_move = double("Move")
           allow(board).to receive(:[]).and_return(square)
+          allow(board).to receive(:last_move).and_return(last_move)
+          allow(last_move).to receive(:en_passant?).and_return(false)
           # set all the squares in the board as empty squares
           allow(square).to receive(:occupied?).and_return(false)
 
@@ -25,7 +28,11 @@ RSpec.describe Pawn do
         it "returns a list of all possible moves" do
           board = double("Board")
           square = double("Square")
+          last_move = double("Move")
           allow(board).to receive(:[]).and_return(square)
+          allow(board).to receive(:last_move).and_return(last_move)
+          allow(last_move).to receive(:en_passant?).and_return(false)
+          # set all the squares in the board as empty squares
           # set all the squares in the board as empty squares
           allow(square).to receive(:occupied?).and_return(false)
 
@@ -44,7 +51,11 @@ RSpec.describe Pawn do
         it "returns a list of all possible moves" do
           board = double("Board")
           square = double("Square")
+          last_move = double("Move")
           allow(board).to receive(:[]).and_return(square)
+          allow(board).to receive(:last_move).and_return(last_move)
+          allow(last_move).to receive(:en_passant?).and_return(false)
+          # set all the squares in the board as empty squares
           # set all the squares in the board as empty squares
           allow(square).to receive(:occupied?).and_return(false)
 
@@ -61,7 +72,11 @@ RSpec.describe Pawn do
         it "returns a list of all possible moves" do
           board = double("Board")
           square = double("Square")
+          last_move = double("Move")
           allow(board).to receive(:[]).and_return(square)
+          allow(board).to receive(:last_move).and_return(last_move)
+          allow(last_move).to receive(:en_passant?).and_return(false)
+          # set all the squares in the board as empty squares
           # set all the squares in the board as empty squares
           allow(square).to receive(:occupied?).and_return(false)
 
@@ -109,7 +124,7 @@ RSpec.describe Pawn do
         board = Board.new
         board.place_piece([5, 2], piece: :Rook, color: "w")
         board.place_piece([3, 1], piece: :Pawn, color: "w")
-        board.move([3, 1], [3, 3])
+        board.move_piece([3, 1], [3, 3])
 
         board.place_piece([4, 3], piece: :Pawn, color: "b")
         moves = board[4, 3].piece.possible_moves(board)
