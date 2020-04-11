@@ -125,8 +125,12 @@ class Board
     end
   end
 
-  def white_in_checkmate?
-    # should be true if all white_pieces have no legal_moves
+  def checkmate?(color)
+    if color == "w"
+      determine_checkmate(@white_pieces)
+    else
+      determine_checkmate(@black_pieces)
+    end
   end
 
   private
@@ -155,6 +159,16 @@ class Board
     return !!check
   end
 
+  def determine_checkmate(pieces)
+    mate = true
+    pieces.each do |piece|
+      legal = piece.legal_moves(self)
+      mate = false if !legal.empty?
+      break if mate == false
+    end
+    return mate
+  end
+
   def update_pieces
     @white_pieces = []
     @black_pieces = []
@@ -168,14 +182,5 @@ class Board
       end
     end
   end
-
 end
 
-b = Board.new
-b.place_piece([4, 4], piece: :Rook , color: "b")
-puts b
-puts "Black:"
-puts b.black_pieces
-puts "White:"
-puts b.white_pieces
-p b[1, 9]

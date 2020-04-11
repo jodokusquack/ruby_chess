@@ -315,4 +315,49 @@ RSpec.describe Board do
       ])
     end
   end
+
+  describe "#checkmate?" do
+    it "can determine if white is in checkmate" do
+      board = Board.new
+      board.place_piece([0, 0], piece: :King, color: "w")
+      board.place_piece([0, 1], piece: :Pawn, color: "w")
+      board.place_piece([1, 1], piece: :Pawn, color: "w")
+      board.place_piece([4, 0], piece: :Queen, color: "b")
+
+      expect(board.checkmate?("w")).to eq true
+    end
+
+    it "doesn't call checkmate if it can be prevented" do
+      board = Board.new
+      board.place_piece([2, 5], piece: :Rook, color: "w")
+      board.place_piece([3, 5], piece: :Queen, color: "w")
+      board.place_piece([3, 7], piece: :King, color: "b")
+      board.place_piece([4, 7], piece: :Rook, color: "b")
+      board.place_piece([4, 6], piece: :Knight, color: "b")
+      board.place_piece([5, 5], piece: :Knight, color: "b")
+
+      expect(board.checkmate?("b")).to be false
+    end
+
+    it "returns false if there is no check" do
+      board = Board.new
+      board.place_piece([0, 0], piece: :King, color: "w")
+
+      expect(board.checkmate?("w")).to eq false
+    end
+
+    it "can determine if black is in checkmate" do
+      board = Board.new
+      board.place_piece([0, 7], piece: :Rook, color: "w")
+      board.place_piece([2, 5], piece: :Knight, color: "w")
+      board.place_piece([2, 7], piece: :Rook, color: "b")
+      board.place_piece([3, 7], piece: :King, color: "b")
+      board.place_piece([4, 7], piece: :Rook, color: "b")
+      board.place_piece([5, 5], piece: :Knight, color: "b")
+      board.place_piece([7, 2], piece: :Bishop, color: "w")
+      board.place_piece([7, 1], piece: :Bishop, color: "w")
+
+      expect(board.checkmate?("b")).to eq true
+    end
+  end
 end
