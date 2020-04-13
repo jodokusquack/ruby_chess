@@ -2,6 +2,28 @@ require_relative './board.rb'
 
 class Game
 
+  class WrongInputError < StandardError; end
+
+  class MalformedInputError < WrongInputError
+    def message
+      "Your Input couldn't be interpreted.
+      You can enter one of the following keywords:
+        'save'    to save the game
+        'load'    to load an older game
+        'exit'    to exit the game (!without saving!)
+      A move can be entered by specifying the coordinates of the
+      start- and end-square like so: 'c3:e5'."
+    end
+  end
+
+  class IllegalMoveError < WrongInputError
+    def message
+      "The entered move is illegal.
+      Are you in check? Or did you try to move into check?
+      Please enter another move."
+    end
+  end
+
   LETTER_TO_NUMBERS = {
     "a" => 0,
     "b" => 1,
@@ -32,38 +54,69 @@ class Game
   end
 
   def new_standard_game
-    # instructions
-    standard_game_setup
+    system "clear"
+    puts instructions
+
+    standard_board_setup
+    new_player_setup
 
     puts @board
 
-    @players.cycle do |p|
-      input = p.fetch_instructions
+      @players.cycle do |p|
+        begin
+        input = p.fetch_instructions
+        puts "RECEIVED INPUT"
 
-      # input interpretation
-      # if 'save' ...
-      # if 'exit' or 'quit' ...
-      # else from, to = @board.decode_instructions(input)
-      # success = board.move_piece(from, to)
-      # if success == false
-      #   print warning, this should maybe be handled in the move
-      #   function
-      # repeat until success == true
+        m = input.match(/.*(?<save>[Ss]ave)?(?<load>[Ll]oad)?(?<exit>[Ee]xit|[qq]uit)?/)
+        if !m.captures.length == 1
+          puts "FOUND A KEYWORD"
+          save_game if m[:save]
+          load_game if m[:load]
+          quit_game if m[:exit]
+          #debug options
+          if m[:moves]
+            puts @board.prev_moves
+          end
+        else
+          puts "FOUND NO KEYWORD"
+          from, to = decode_instructions(input)
+          if from == false
+            puts "DIDN'T UNDERSTAND INPUT"
+            raise MalformedInputError
+          end
 
-      system "clear"
-      puts input
-      puts @board
+          success = @board.move_piece(from, to)
+          if success == false
+            puts "THE MOVE IS ILLEGAL"
+            raise IllegalMoveError
+          end
 
-      if board.checkmate?
-        @winner = p
-        break
+          system "clear"
+          puts last_move(input)
+          puts @board
+          puts
+
+          if @board.checkmate?(p.other_color)
+            @winner = p
+            break
+          end
+        end
       end
+
+    rescue WrongInputError => e
+      puts "RESCUING AN ERROR"
+      puts e.message
+      retry
     end
 
     puts winning_message
   end
 
-  def standard_game_setup
+  def new_player_setup
+    @players = [Player.new(color: "w"), Player.new(color: "b")]
+  end
+
+  def standard_board_setup
     @board = Board.new
 
     pieces = [:Rook, :Knight, :Bishop, :Queen, :King, :Bishop, :Knight, :Rook]
@@ -82,6 +135,34 @@ class Game
     end
 
     @board
+  end
+
+  def instructions
+    "Welcome to the Great Game of Chess!
+    The Game is played between two players that each take control
+    of one set of colored pieces (White and Black).
+    The goal of the game is to capture the opponents King.
+    If a player cannot prevent the capture of his King in the next turn, he
+    or she is declared checkmate and the game ends.
+
+    White always starts (the color on the bottom of the screen, it might look
+    like another color on your screen) and every player can move one piece
+    per turn. For further rules of how to play the game you better google a bit.
+
+    To tell the game which piece you want to move where, you have to enter the
+    start and end coordinates (in lowercase letters) à la 'e2:e4'.
+    Castling works the same, and you can save the game at any point by
+    entering 'save' or exit it by entering 'quit'.
+
+    Now, have Fun!"
+  end
+
+  def last_move(move)
+    "Last move was: #{move}"
+  end
+
+  def winning_message
+    "Congratulations #{@winner.full_color}, you won!"
   end
 end
 

@@ -21,8 +21,6 @@ class Player
     return input
   end
 
-  private
-
   def full_color
     return "White" if @color.downcase == "w"
     return "Black" if @color.downcase == "b"
