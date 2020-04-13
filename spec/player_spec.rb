@@ -20,18 +20,16 @@ RSpec.describe Player do
 
     it "tells the player instructions for the turn" do
       p = Player.new(color: "w")
-      board = double("Board")
       allow(p).to receive(:gets).and_return("Nf3\n")
 
-      expect { p.fetch_instructions(board) }.to output(/White/).to_stdout
+      expect { p.fetch_instructions }.to output(/White/).to_stdout
     end
 
     it "keeps asking until some input is given" do
       p = Player.new(color: "w")
-      board = double("Board")
       allow(p).to receive(:gets).and_return("\n", "\n", "Bg5\n")
 
-      instructions = p.fetch_instructions(board)
+      instructions = p.fetch_instructions
 
       expect(instructions).to eq "Bg5"
     end

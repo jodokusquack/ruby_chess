@@ -1,17 +1,18 @@
 class Player
 
-  attr_accessor :color
+  attr_accessor :color, :other_color
 
   def initialize( color: , has_castled: false)
     @color = color
     @has_castled = has_castled
+    @other_color = @color == "w" ? "b":"w"
   end
 
   def castled?
     @has_castled
   end
 
-  def fetch_instructions(board)
+  def fetch_instructions
     puts "It's #{full_color}'s turn. Please enter your move/command:"
     begin
       input = gets.chomp
