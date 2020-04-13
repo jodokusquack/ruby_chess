@@ -44,7 +44,7 @@ class Piece
     legal = []
     reachable.each do |pos|
       # do the move
-      board.move_piece(@position, pos)
+      board.move_piece_to_possible(@position, pos)
       # check for check and if there is no check, add the move to the
       # legal moves
       if !board.check?(@color)

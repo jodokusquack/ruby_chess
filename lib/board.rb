@@ -54,6 +54,52 @@ class Board
     return new_piece
   end
 
+  def move_piece_to_possible(from, to)
+    # just for moving a piece without checking for check, otherwise equal
+    # to move_piece
+    takes = false
+
+    piece = self[*from].piece
+
+    return false if piece.nil?
+    return false if !piece.possible_moves(self).include?(to)
+    # return false if in check afterwards
+
+    # first copy the piece that is at "to"
+    old_piece = self[*to].piece
+
+    # then copy over the piece to move (from "from" to "to")
+    self[*to].piece = piece
+
+    # update the position of the moved piece
+    piece.position = to
+
+    #delete the old piece
+    self[*from].piece = nil
+
+    # if the last piece from the last move can be captured by en passant
+    # and the current piece is a Pawn, check if this was the case
+    if piece.instance_of?(Pawn) and last_move.en_passant?
+      other_position = last_move.to
+      if (to[1] - other_position[1]).abs == 1 and to[0] == other_position[0]
+        old_piece = self[*other_position].piece
+        self[*other_position].piece = nil
+      end
+    end
+
+    # add the captured piece to the captured_pieces
+    unless old_piece.nil?
+      @captured_pieces << old_piece
+      # set takes to true if a piece was captured
+      takes = old_piece
+    end
+
+    prev_moves << Move.new(piece, from: from, to: to, takes: takes)
+    update_pieces
+
+    return old_piece || true
+  end
+
   def move_piece(from , to)
     # assume that no piece will be taken
     takes = false
@@ -61,7 +107,7 @@ class Board
     piece = self[*from].piece
 
     return false if piece.nil?
-    return false if !piece.possible_moves(self).include?(to)
+    return false if !piece.legal_moves(self).include?(to)
     # return false if in check afterwards
 
     # first copy the piece that is at "to"

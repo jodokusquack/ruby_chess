@@ -5,7 +5,7 @@ RSpec.describe Move do
     it "correctly tells if a piece can be captured en passant" do
       pawn = double("Pawn")
       allow(pawn).to receive(:instance_of?).with(Pawn).and_return(true)
-      m = Move.new(pawn, from: [3, 1], to: [3, 3])
+      m = Move.new(pawn, from: [3, 1], to: [3, 3], takes: false)
 
       expect(m.en_passant?).to eq true
     end
@@ -14,7 +14,7 @@ RSpec.describe Move do
       pawn = double("Pawn")
       allow(pawn).to receive(:instance_of?).with(Pawn).and_return(true)
 
-      m = Move.new(pawn, from: [4, 4], to: [4, 5])
+      m = Move.new(pawn, from: [4, 4], to: [4, 5], takes: false)
 
       expect(m.en_passant?).to eq false
     end
