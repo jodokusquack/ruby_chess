@@ -35,6 +35,11 @@ class Game
     "h" => 7,
   }
 
+  def initialize
+    @game_in_play = false
+    @saved = false
+  end
+
   def decode_instructions(instructions)
     m = instructions.match(/.*(?<from>[a-h][1-8]).*(?<to>[a-h][1-8]).*/)
 
@@ -53,7 +58,32 @@ class Game
     return from, to
   end
 
+  def start
+    puts "
+    Welcome to Chess! What would you like to do?
+
+      * Start a new Game  ->  Enter 'new'
+      * Load a saved Game ->  Enter 'load'
+
+      "
+
+    allowed = ["new", "load", "exit"]
+    input = ""
+
+    loop do
+      input = gets.chomp.downcase
+      if allowed.include?(input)
+        break
+      end
+    end
+
+    new_standard_game if input == "new"
+    load_game         if input == "load"
+    exit_game         if input == "exit"
+  end
+
   def new_standard_game
+    @game_in_play = true
     system "clear"
     puts instructions
 
@@ -67,6 +97,10 @@ class Game
         input = p.fetch_instructions
         puts "RECEIVED INPUT"
 
+        # FIXME after the input was scanned for keywords and the function
+        # has been executed, the game loop should continue with the
+        # player that was at the turn. To be able to save and continue or
+        # abort an exit.
         m = input.match(/.*(?<save>[Ss]ave)?(?<load>[Ll]oad)?(?<exit>[Ee]xit|[qq]uit)?/)
         if !m.captures.length == 1
           puts "FOUND A KEYWORD"
@@ -110,6 +144,46 @@ class Game
     end
 
     puts winning_message
+    @game_in_play = false
+  end
+
+  def load_game
+    # show previously saved games
+    # show warning if no games were found
+    # display options for loading any of
+    # the saved games, or start a new one.
+    #
+    # call either new_standard_game or
+    # load_saved_game
+
+  end
+
+  def save_game
+    # ask for the save slot (max 3) or
+    # which one to overwrite
+    #
+    # save and set @saved to true
+    #
+    # ask if want to continue
+  end
+
+  def exit_game
+    if @game_in_play and !@saved
+      puts "
+      The current game is not saved!
+      You will lose all progress if you exit without saving.
+
+      Do you really want to exit without saving? [y/N]"
+
+      input = gets.chomp.downcase
+
+      if input[0] != "y"
+        return
+      end
+    end
+
+    abort("Thanks for playing!")
+
   end
 
   def new_player_setup
@@ -138,7 +212,7 @@ class Game
   end
 
   def instructions
-    "Welcome to the Great Game of Chess!
+    "
     The Game is played between two players that each take control
     of one set of colored pieces (White and Black).
     The goal of the game is to capture the opponents King.

@@ -1,4 +1,5 @@
 require './lib/game.rb'
+require 'stringio'
 
 RSpec.describe Game do
   describe "#decode_instructions" do
@@ -54,8 +55,10 @@ RSpec.describe Game do
   describe "#start" do
     it "presents the players with a few options for play" do
       game = Game.new
+      allow(game).to receive(:gets).and_return("new\n")
+      allow(game).to receive(:new_standard_game)
 
-      expect { game.start }.to output(/load.*new/i).to_stdout
+      expect { game.start }.to output(/new.*load/im).to_stdout
     end
 
     it "keeps asking if the user inputs something invalid" do

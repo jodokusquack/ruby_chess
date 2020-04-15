@@ -7,5 +7,9 @@ require './lib/game.rb'
 
 game = Game.new
 
-game.new_standard_game
+loop do
+
+  game.start
+
+end
 
