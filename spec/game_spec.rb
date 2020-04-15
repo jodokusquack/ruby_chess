@@ -1,5 +1,4 @@
 require './lib/game.rb'
-require 'stringio'
 
 RSpec.describe Game do
   describe "#decode_instructions" do
