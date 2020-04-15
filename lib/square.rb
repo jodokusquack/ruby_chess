@@ -17,9 +17,9 @@ class Square
     if occupied?
       @piece.to_s
     elsif @color == "w"
-      "□"
-    else
       "■"
+    else
+      "□"
     end
   end
 end

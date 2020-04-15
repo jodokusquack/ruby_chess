@@ -3,9 +3,9 @@ require_relative './piece.rb'
 class King < Piece
   def to_s
     if @color == "w"
-      "♔"
-    else
       "♚"
+    else
+      "♔"
     end
   end
 
