@@ -18,24 +18,6 @@ RSpec.describe Square do
         expect(s.occupied?).to eq false
       end
     end
-
-    describe "#to_s" do
-      context "when the square is white" do
-        it "prints a white square to the screen" do
-          s = Square.new(color: "w")
-
-          expect { print s }.to output("□").to_stdout
-        end
-      end
-
-      context "when the square is black" do
-        it "prints a black square to the screen" do
-          s = Square.new(color: "b")
-
-          expect { print s }.to output("■").to_stdout
-        end
-      end
-    end
   end
 
   context "when the square is occupied by a piece" do
