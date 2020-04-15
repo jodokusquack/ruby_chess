@@ -9,7 +9,7 @@ game = Game.new
 
 loop do
 
-  game.start
+  game.new_standard_game
 
 end
 

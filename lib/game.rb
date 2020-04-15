@@ -16,6 +16,20 @@ class Game
     end
   end
 
+  MalformedInputMessage = "
+      Your Input couldn't be interpreted.
+      You can enter one of the following keywords:
+        'save'    to save the game
+        'load'    to load an older game
+        'exit'    to exit the game (!without saving!)
+      A move can be entered by specifying the coordinates of the
+      start- and end-square like so: 'c3:e5'."
+
+  IllegalMoveMessage = "
+      The entered move is illegal.
+      Are you in check? Or did you try to move into check?
+      Please enter another move."
+
   class IllegalMoveError < WrongInputError
     def message
       "The entered move is illegal.
@@ -38,6 +52,7 @@ class Game
   def initialize
     @game_in_play = false
     @saved = false
+    @winner = false
   end
 
   def decode_instructions(instructions)
@@ -65,7 +80,8 @@ class Game
       * Start a new Game  ->  Enter 'new'
       * Load a saved Game ->  Enter 'load'
 
-      "
+      * Exit              ->  Enter 'exit'
+    "
 
     allowed = ["new", "load", "exit"]
     input = ""
@@ -92,55 +108,73 @@ class Game
 
     puts @board
 
-      @players.cycle do |p|
-        begin
-        input = p.fetch_instructions
-        puts "RECEIVED INPUT"
+    @players.cycle do |p|
+      catch :game_over do
+        1.times do
+          input = p.fetch_instructions
+          puts "RECEIVED INPUT"
 
-        # FIXME after the input was scanned for keywords and the function
-        # has been executed, the game loop should continue with the
-        # player that was at the turn. To be able to save and continue or
-        # abort an exit.
-        m = input.match(/.*(?<save>[Ss]ave)?(?<load>[Ll]oad)?(?<exit>[Ee]xit|[qq]uit)?/)
-        if !m.captures.length == 1
-          puts "FOUND A KEYWORD"
-          save_game if m[:save]
-          load_game if m[:load]
-          quit_game if m[:exit]
-          #debug options
-          if m[:moves]
-            puts @board.prev_moves
-          end
-        else
-          puts "FOUND NO KEYWORD"
-          from, to = decode_instructions(input)
-          if from == false
-            puts "DIDN'T UNDERSTAND INPUT"
-            raise MalformedInputError
-          end
+          # FIXME the Regex
+          m = input.match(/((?<save>[Ss]ave)|(?<load>[Ll]oad)|(?<exit>[Ee]xit|[Qq]uit)|(?<debug>debug: )(?<option>.*))/)
+          if !m.nil?
+            puts "FOUND A KEYWORD"
+            save_game if m[:save]
+            load_game if m[:load]
+            exit_game if m[:exit]
+            #debug options
+            if m[:debug]
+              case m[:option]
+              when "prev_moves"
+                puts @board.prev_moves
+              when "white_moves"
+                @board.white_pieces.each do |p|
+                  print p
+                  print p.position
+                  print ": "
+                  print p.legal_moves(@board)
+                  puts
+                end
+              when "black_pieces"
+                @board.black_piece.each do |p|
+                  print p
+                end
+              else
+                puts "No recognized debug option."
+              end
+            end
 
-          success = @board.move_piece(from, to)
-          if success == false
-            puts "THE MOVE IS ILLEGAL"
-            raise IllegalMoveError
-          end
+            # since we want to keep asking for input from the same player
+            # after saving or aborting an exit we retry
+            redo
+          else
+            puts "FOUND NO KEYWORD"
+            from, to = decode_instructions(input)
+            if from == false
+              puts "DIDN'T UNDERSTAND INPUT"
+              puts MalformedInputMessage
+              redo
+            end
 
-          system "clear"
-          puts last_move(input)
-          puts @board
-          puts
+            success = @board.move_piece(from, to)
+            if success == false
+              puts "THE MOVE IS ILLEGAL"
+              puts IllegalMoveMessage
+              redo
+            end
 
-          if @board.checkmate?(p.other_color)
-            @winner = p
-            break
+            system "clear"
+            puts last_move(input)
+            puts @board
+            puts
+
+            if @board.checkmate?(p.other_color)
+              puts "CHECKMATE"
+              @winner = p
+              throw :game_over
+            end
           end
         end
       end
-
-    rescue WrongInputError => e
-      puts "RESCUING AN ERROR"
-      puts e.message
-      retry
     end
 
     puts winning_message
@@ -148,6 +182,7 @@ class Game
   end
 
   def load_game
+    puts "LOADING..."
     # show previously saved games
     # show warning if no games were found
     # display options for loading any of
@@ -159,6 +194,7 @@ class Game
   end
 
   def save_game
+    puts "SAVING..."
     # ask for the save slot (max 3) or
     # which one to overwrite
     #
@@ -236,7 +272,14 @@ class Game
   end
 
   def winning_message
-    "Congratulations #{@winner.full_color}, you won!"
+    if @winner != false
+      "
+      Congratulations #{@winner.full_color}, you won!"
+    else
+      "
+      Remis! The game has ended without a winner."
+
+    end
   end
 end
 
