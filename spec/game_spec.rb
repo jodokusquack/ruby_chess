@@ -50,4 +50,18 @@ RSpec.describe Game do
       end
     end
   end
+
+  it "can play the Fool's Mate" do
+    game = Game.new
+    allow(game).to receive(:gets).and_return(
+      "new\n",
+      "f2f3\n",
+      "e7e5\n",
+      "g2g4\n",
+      "d8h4\n",
+      "n\n"
+    )
+
+    expect { game.start }.to output(/Congratulations!/).to_stdout
+  end
 end
