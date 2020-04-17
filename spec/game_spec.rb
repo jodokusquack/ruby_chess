@@ -50,44 +50,4 @@ RSpec.describe Game do
       end
     end
   end
-
-  describe "#start" do
-    it "presents the players with a few options for play" do
-      game = Game.new
-      allow(game).to receive(:gets).and_return("new\n")
-      allow(game).to receive(:new_standard_game)
-
-      expect { game.start }.to output(/new.*load/im).to_stdout
-    end
-
-    it "keeps asking if the user inputs something invalid" do
-      game = Game.new
-      allow(game).to receive(:gets).and_return("\n", "alköj asdlf\n", "load\n")
-      allow(game).to receive(:load_game)
-
-      game.start
-
-      expect(game).to have_received(:load_game)
-    end
-
-    it "can start a new game" do
-      game = Game.new
-      allow(game).to receive(:gets).and_return("new\n")
-      allow(game).to receive(:new_standard_game)
-
-      game.start
-
-      expect(game).to have_received(:new_standard_game)
-    end
-
-    it "can exit the game" do
-      game = Game.new
-      allow(game).to receive(:gets).and_return("exit\n")
-      allow(game).to receive(:exit_game)
-
-      game.start
-
-      expect(game).to have_received(:exit_game)
-    end
-  end
 end

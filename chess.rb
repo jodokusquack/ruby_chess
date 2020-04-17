@@ -6,10 +6,5 @@
 require './lib/game.rb'
 
 game = Game.new
-
-loop do
-
-  game.new_standard_game
-
-end
+game.start
 

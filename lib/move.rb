@@ -16,7 +16,11 @@ class Move
   end
 
   def to_s
-    "#{from} -> #{to}"
+    if @piece == "New Game"
+      ""
+    else
+      "#{from} -> #{to}"
+    end
   end
 
   def reverse(board)
