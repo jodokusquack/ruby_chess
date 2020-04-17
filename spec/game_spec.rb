@@ -1,4 +1,5 @@
 require './lib/game.rb'
+require 'stringio'
 
 RSpec.describe Game do
   describe "#decode_instructions" do
@@ -51,17 +52,29 @@ RSpec.describe Game do
     end
   end
 
-  it "can play the Fool's Mate" do
-    game = Game.new
-    allow(game).to receive(:gets).and_return(
-      "new\n",
-      "f2f3\n",
-      "e7e5\n",
-      "g2g4\n",
-      "d8h4\n",
-      "n\n"
-    )
+  describe "a whole_game" do
 
-    expect { game.start }.to output(/Congratulations!/).to_stdout
+    after(:each) do
+      $stdin = STDIN
+    end
+
+    it "can play the Fool's Mate" do
+      # first create a new stdin
+      io = StringIO.new
+      io.puts "new"
+      io.puts "f2f3"
+      io.puts "e7e5"
+      io.puts "g2g4"
+      io.puts "d8h4"
+      io.puts "n"
+      io.rewind
+
+      $stdin = io
+
+      game = Game.new
+      allow(game).to receive(:gets).and_return(io.gets)
+
+      expect { game.start }.to output(/Congratulations!/).to_stdout
+    end
   end
 end
