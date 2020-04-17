@@ -90,8 +90,8 @@ RSpec.describe Pawn do
       end
     end
 
-    context "when a white Pawn is not the only piece" do
-      it "returns a list of possible moves" do
+    context "when a Pawn is not the only piece" do
+      it "a white Pawn can beat diagonally" do
         board = Board.new
         board.place_piece([5, 2], piece: :Pawn, color: "w")
         board.place_piece([5, 3], piece: :Pawn, color: "b")
@@ -106,7 +106,7 @@ RSpec.describe Pawn do
         ])
       end
 
-      it "returns a list of possible moves" do
+      it "a black Pawn can beat diagonally" do
         board = Board.new
         board.place_piece([3, 5], piece: :Knight, color: "w")
 
@@ -115,6 +115,30 @@ RSpec.describe Pawn do
 
         expect(moves).to match_array([
           [4, 5], [4, 4], [3, 5]
+        ])
+      end
+
+      it "cannot take straight ahead" do
+        board = Board.new
+        board.place_piece([7, 3], piece: :Pawn, color: "w")
+        board.place_piece([7, 4], piece: :Pawn, color: "b")
+
+        mW = board[7, 3].piece.possible_moves(board)
+        mB = board[7, 4].piece.possible_moves(board)
+
+        expect(mW).to be_empty
+        expect(mB).to be_empty
+      end
+
+      it "cannot take straight ahead form the home row" do
+        board = Board.new
+        board.place_piece([4, 3], piece: :Queen, color: "b")
+        board.place_piece([4, 1], piece: :Pawn, color: "w")
+
+        moves = board[4, 1].piece.possible_moves(board)
+
+        expect(moves).to match_array([
+          [4, 2]
         ])
       end
     end

@@ -24,11 +24,11 @@ class Pawn < Piece
 
     # first check the square ahead of the pawn
     s1 = [@col, @row.send(method, 1)]
-    moves << s1 unless board[*s1].occupied? and board[*s1].piece.color == @color
+    moves << s1 unless board[*s1].occupied?
 
     if @row == home_row
       s2 = [@col, @row.send(method, 2)]
-      moves << s2 unless board[*s2].occupied? and board[*s2].piece.color == @color
+      moves << s2 unless board[*s2].occupied?
     end
 
     # next check the two squares diagonally
