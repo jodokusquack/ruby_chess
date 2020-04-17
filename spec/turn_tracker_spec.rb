@@ -3,32 +3,38 @@ require './lib/turn_tracker.rb'
 RSpec.describe TurnTracker do
   describe "#current" do
     it "returns the player who's turn it is" do
-      t = TurnTracker.new
+      pW = double("white_player", :color => "w")
+      pB = double("black_player", :color => "b")
+      t = TurnTracker.new(players: [pW, pB])
 
-      player_color = t.current
+      player = t.current
 
-      expect(player_color).to eq "w"
+      expect(player.color).to eq "w"
     end
 
     it "can be initialized with black as the current color" do
-      t = TurnTracker.new(current: "b")
+      pW = double("white_player", :color => "w")
+      pB = double("black_player", :color => "b")
+      t = TurnTracker.new(players: [pW, pB], current_color: "b")
 
-      color = t.current
+      player = t.current
 
-      expect(color).to eq "b"
+      expect(player.color).to eq "b"
     end
   end
 
   describe "#next" do
     it "can change the player color from 'w' to 'b'" do
-      t = TurnTracker.new
+      pW = double("white_player", :color => "w")
+      pB = double("black_player", :color => "b")
+      t = TurnTracker.new(players: [pW, pB])
 
-      color = t.current
-      next_color = t.next
+      player = t.current
+      next_player = t.next
 
-      expect(color).to eq "w"
-      expect(next_color).to eq "b"
-      expect { t.next }.to change(t, :current).from("b").to("w")
+      expect(player.color).to eq "w"
+      expect(next_player.color).to eq "b"
+      expect { t.next }.to change(t, :current)
     end
   end
 end
