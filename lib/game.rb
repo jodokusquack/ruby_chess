@@ -56,6 +56,7 @@ class Game
             display_fresh_board
             puts "DIDN'T UNDERSTAND INPUT"
             puts malformed_input_message(input)
+            puts
             redo
           end
 
@@ -64,6 +65,7 @@ class Game
             display_fresh_board
             puts "THE MOVE IS ILLEGAL"
             puts illegal_move_message(input)
+            puts
             redo
           end
 
@@ -304,6 +306,7 @@ class Game
 
   def display_fresh_board
     system "clear"
+    puts
     puts last_move
     puts @board
     puts
