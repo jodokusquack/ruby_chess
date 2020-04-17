@@ -78,7 +78,7 @@ class Game
           # check if the game has ended
           if @board.checkmate?(@current.other_color)
             puts "CHECKMATE"
-            @winner = p
+            @winner = @current
             throw :game_over
           end
         end
