@@ -42,6 +42,8 @@ class Game
                           (?<exit>[Ee]xit)|
                           (?<quit>[Qq]uit)|
                           (?<new>[Nn]ew)|
+                          (?<castle_long>[Cc]astle [Ll]ong|OOO)|
+                          (?<castle_short>[Cc]astle|OO)|
                           (?<debug>debug:)(?<option>.*))/x)
         if !m.nil?
           special_action(m)
@@ -113,6 +115,23 @@ class Game
 
   private
 
+  def castle(type)
+    if type == "short"
+      result = @board.castle_short(@current.color)
+    elsif type == "long"
+      result = @board.castle_long(@current.color)
+    end
+
+    if result == false
+      puts illegal_move_message("Castling")
+      puts
+    else
+      @saved = false
+      display_fresh_board
+      @current = @tracker.next
+    end
+  end
+
   def special_action(match)
     if    match[:save]
       save_game
@@ -127,6 +146,10 @@ class Game
         type = "new"              if match[:new]
         set_up_game(type)
       end
+    elsif match[:castle_short]
+      castle("short")
+    elsif match[:castle_long]
+      castle("long")
     elsif match[:debug]
       #debug options
       case match[:option]
@@ -172,7 +195,7 @@ class Game
       * Exit              ->  Enter 'exit'
     "
 
-    allowed = ["new", "load", "exit"]
+    allowed = ["new", "load", "exit", "debug"]
     input = ""
 
     loop do
@@ -183,6 +206,7 @@ class Game
     end
 
     return "new"              if input == "new"
+    return "debug"            if input == "debug"
     return select_saved_game  if input == "load"
     exit_game                 if input == "exit"
   end
@@ -198,10 +222,16 @@ class Game
       # sets up @board
       standard_board_setup
       # sets up @tracker with a new @players array
-      player_setup(players: "new", current_color: "w")
+      player_setup(players: "new")
       @current = @tracker.current
       @saved = false
 
+    elsif name == "debug"
+      debug_board_setup
+
+      player_setup(players: "new")
+      @current = @tracker.current
+      @saved = false
     else
       # load the game with the name name
       # it needs to setup:
@@ -236,7 +266,30 @@ class Game
     @board
   end
 
-  def player_setup(players:, current_color:)
+  def debug_board_setup
+    @board = Board.new
+
+    @board.place_piece([4, 0], piece: :King, color: "w")
+    @board.place_piece([0, 0], piece: :Rook, color: "w")
+    @board.place_piece([7, 0], piece: :Rook, color: "w")
+    @board.place_piece([4, 7], piece: :King, color: "b")
+    @board.place_piece([0, 7], piece: :Rook, color: "b")
+    @board.place_piece([7, 7], piece: :Rook, color: "b")
+
+    @board.place_piece([2, 2], piece: :Pawn, color: "b")
+    @board.place_piece([6, 2], piece: :Pawn, color: "b")
+    @board.place_piece([2, 5], piece: :Pawn, color: "w")
+    @board.place_piece([6, 5], piece: :Pawn, color: "w")
+
+    @board.place_piece([3, 3], piece: :Knight, color: "b")
+    @board.place_piece([3, 4], piece: :Knight, color: "w")
+    @board.place_piece([4, 3], piece: :Knight, color: "w")
+    @board.place_piece([4, 4], piece: :Knight, color: "b")
+
+    @board
+  end
+
+  def player_setup(players:, current_color: "w")
     # this method creates an @players array and sets up a TurnTracker
     # with it
     if players == "new"
@@ -299,6 +352,10 @@ class Game
     lm = @board.last_move
     if lm.piece == "New Game"
       ""
+    elsif lm.castle == "short"
+      "Short Castle"
+    elsif lm.castle == "long"
+      "Long Castle"
     else
       "Last move was: #{lm}"
     end
@@ -395,3 +452,5 @@ class Game
   end
 end
 
+game = Game.new
+game.start

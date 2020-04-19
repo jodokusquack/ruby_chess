@@ -244,6 +244,8 @@ class Board
 
     self[*king.position].piece = king
     self[*rook.position].piece = rook
+    self[*king_pos].piece = nil
+    self[*rook_pos].piece = nil
 
     @prev_moves << Move.new(king.clone, from: king_pos, to: king.position,
                         takes: false, castle: "short")
@@ -301,6 +303,8 @@ class Board
 
     self[*king.position].piece = king
     self[*rook.position].piece = rook
+    self[*king_pos].piece = nil
+    self[*rook_pos].piece = nil
 
     @prev_moves << Move.new(king.clone, from: king_pos, to: king.position,
                         takes: false, castle: "long")
