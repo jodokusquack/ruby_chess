@@ -214,15 +214,141 @@ RSpec.describe Board do
       expect(after).to eq true
     end
 
-    # these may go into another method
-    it "can castle long"
-
-    it "can caste short"
-
-    it "doesn't allow castleing over check"
-
-
     it "asks for a pawn to be promoted when it reaches the end row"
+  end
+
+  describe "#castle_short" do
+    it "can castle short for black" do
+      board = Board.new
+      board.place_piece([4, 7], piece: :King, color: "b")
+      board.place_piece([7, 7], piece: :Rook, color: "b")
+
+      success = board.castle_short("b")
+
+      expect(success).to eq true
+      expect(board[6, 7].piece).to be_instance_of(King)
+      expect(board[6, 7].piece.position).to eq [6, 7]
+      expect(board[5, 7].piece).to be_instance_of(Rook)
+      expect(board[5, 7].piece.position).to eq [5, 7]
+      expect(board.last_move.castle).to eq "short"
+    end
+
+    it "can castle short for white" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.place_piece([7, 0], piece: :Rook, color: "w")
+
+      success = board.castle_short("w")
+
+      expect(success).to eq true
+      expect(board[6, 0].piece).to be_instance_of(King)
+      expect(board[6, 0].piece.position).to eq [6, 0]
+      expect(board[5, 0].piece).to be_instance_of(Rook)
+      expect(board[5, 0].piece.position).to eq [5, 0]
+    end
+
+    it "returns false when another piece is in the way" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.place_piece([7, 0], piece: :Rook, color: "w")
+      board.place_piece([5, 0], piece: :Bishop, color: "w")
+
+      success = board.castle_short("w")
+
+      expect(success).to eq false
+      expect(board[4, 0].piece).to be_instance_of(King)
+    end
+
+    it "returns false when a piece has already moved" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.place_piece([7, 0], piece: :Rook, color: "w")
+      board.move_piece([4, 0], [4, 1])
+      board.move_piece([4, 1], [4, 0])
+
+      success = board.castle_short("w")
+
+      expect(success).to eq false
+      expect(board[4, 0].piece).to be_instance_of(King)
+    end
+
+    it "doesn't allow castling over check" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.place_piece([7, 0], piece: :Rook, color: "w")
+      board.place_piece([3, 2], piece: :Bishop, color: "b")
+
+      success = board.castle_short("w")
+
+      expect(success).to eq false
+    end
+  end
+
+  describe "#castle_long" do
+    it "can castle long for black" do
+      board = Board.new
+      board.place_piece([4, 7], piece: :King, color: "b")
+      board.place_piece([0, 7], piece: :Rook, color: "b")
+
+      success = board.castle_long("b")
+
+      expect(success).to eq true
+      expect(board[2, 7].piece).to be_instance_of(King)
+      expect(board[2, 7].piece.position).to eq [2, 7]
+      expect(board[3, 7].piece).to be_instance_of(Rook)
+      expect(board[3, 7].piece.position).to eq [3, 7]
+      expect(board.last_move.castle).to eq "long"
+    end
+
+    it "can castle long for white" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.place_piece([0, 0], piece: :Rook, color: "w")
+
+      success = board.castle_long("w")
+
+      expect(success).to eq true
+      expect(board[2, 0].piece).to be_instance_of(King)
+      expect(board[2, 0].piece.position).to eq [2, 0]
+      expect(board[3, 0].piece).to be_instance_of(Rook)
+      expect(board[3, 0].piece.position).to eq [3, 0]
+    end
+
+    it "returns false when another piece is in the way" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.place_piece([0, 0], piece: :Rook, color: "w")
+      board.place_piece([2, 0], piece: :Bishop, color: "w")
+
+      success = board.castle_long("w")
+
+      expect(success).to eq false
+      expect(board[4, 0].piece).to be_instance_of(King)
+    end
+
+    it "returns false when a piece has already moved" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.place_piece([0, 0], piece: :Rook, color: "w")
+      board.move_piece([4, 0], [4, 1])
+      board.move_piece([4, 1], [4, 0])
+
+      success = board.castle_long("w")
+
+      expect(success).to eq false
+      expect(board[4, 0].piece).to be_instance_of(King)
+    end
+
+    it "doesn't allow castling over check" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.place_piece([0, 0], piece: :Rook, color: "w")
+      board.place_piece([4, 2], piece: :Bishop, color: "b")
+
+      success = board.castle_long("w")
+
+      expect(success).to eq false
+    end
   end
 
   describe "#check?" do

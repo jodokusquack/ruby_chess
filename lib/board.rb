@@ -108,7 +108,6 @@ class Board
 
     return false if piece.nil?
     return false if !piece.legal_moves(self).include?(to)
-    # return false if in check afterwards
 
     # first copy the piece that is at "to"
     old_piece = self[*to].piece
@@ -146,6 +145,37 @@ class Board
     return old_piece || true
   end
 
+  def shift_piece(from , to)
+    takes = false
+
+    piece = self[*from].piece
+
+    # first copy the piece that is at "to"
+    old_piece = self[*to].piece
+
+    # then copy over the piece to move (from "from" to "to")
+    self[*to].piece = piece
+
+    # update the position of the moved piece
+    piece.position = to
+
+    #delete the old piece
+    self[*from].piece = nil
+
+    # add the captured piece to the captured_pieces
+    unless old_piece.nil?
+      @captured_pieces << old_piece
+      # set takes to the piece
+      takes = old_piece
+    end
+
+    @prev_moves << Move.new(piece.clone, from: from, to: to, takes: takes)
+    piece.has_moved = true
+    update_pieces
+
+    return old_piece || true
+  end
+
   def take_back_turn
     move = @prev_moves.pop
 
@@ -162,6 +192,120 @@ class Board
     prev_moves.reverse.each do |move|
       puts move
     end
+  end
+
+  def can_castle_short?(color)
+    if color == "w"
+      pieces = @white_pieces
+    else
+      pieces = @black_pieces
+    end
+
+    king = pieces.find { |p| p.instance_of?(King) }
+    if king.has_moved == false and !self.check?(color)
+      positions = [[5, king.row], [6, king.row]]
+      squares = [self[*positions[0]], self[*positions[1]]]
+      if !squares.any? { |s| s.piece != nil }
+        rook = self[7, king.row].piece
+        if rook.instance_of?(Rook) and rook.has_moved == false
+          check_anywhere = positions.any? do |pos|
+            self.shift_piece([4, king.row], pos)
+            in_check = self.check?(color)
+            self.take_back_turn
+            in_check
+          end
+          if check_anywhere != true
+            return true
+          end
+        end
+      end
+    end
+    false
+  end
+
+  def castle_short(color)
+    return false if !can_castle_short?(color)
+
+    if color == "w"
+      king_pos = [4, 0]
+      rook_pos = [7, 0]
+    else
+      king_pos = [4, 7]
+      rook_pos = [7, 7]
+    end
+
+    king = self[*king_pos].piece
+    rook = self[*rook_pos].piece
+
+    king.position = [6, king.row]
+    rook.position = [5, king.row]
+    king.has_moved = true
+    rook.has_moved = true
+
+    self[*king.position].piece = king
+    self[*rook.position].piece = rook
+
+    @prev_moves << Move.new(king.clone, from: king_pos, to: king.position,
+                        takes: false, castle: "short")
+
+    return true
+  end
+
+  def can_castle_long?(color)
+    if color == "w"
+      pieces = @white_pieces
+    else
+      pieces = @black_pieces
+    end
+
+    king = pieces.find { |p| p.instance_of?(King) }
+    if king.has_moved == false and !self.check?(color)
+      positions = [[3, king.row], [2, king.row], [1, king.row]]
+      squares = [self[*positions[0]], self[*positions[1]], self[*positions[2]]]
+      if !squares.any? { |s| s.piece != nil }
+        rook = self[0, king.row].piece
+        if rook.instance_of?(Rook) and rook.has_moved == false
+          check_anywhere = positions[0..1].any? do |pos|
+            self.shift_piece([4, king.row], pos)
+            in_check = self.check?(color)
+            self.take_back_turn
+            in_check
+          end
+          if check_anywhere != true
+            return true
+          end
+        end
+      end
+    end
+    false
+  end
+
+  def castle_long(color)
+    return false if !can_castle_long?(color)
+
+    if color == "w"
+      king_pos = [4, 0]
+      rook_pos = [0, 0]
+    else
+      king_pos = [4, 7]
+      rook_pos = [0, 7]
+    end
+
+    king = self[*king_pos].piece
+    rook = self[*rook_pos].piece
+
+    king.position = [2, king.row]
+    rook.position = [3, king.row]
+    king.has_moved = true
+    rook.has_moved = true
+
+    self[*king.position].piece = king
+    self[*rook.position].piece = rook
+
+    @prev_moves << Move.new(king.clone, from: king_pos, to: king.position,
+                        takes: false, castle: "long")
+
+    return true
   end
 
   def check?(color)

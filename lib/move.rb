@@ -2,13 +2,14 @@ require_relative './pieces/pawn.rb'
 
 class Move
 
-  attr_accessor :piece, :from, :to, :takes
+  attr_accessor :piece, :from, :to, :takes, :castle
 
-  def initialize(piece, from:, to:, takes:)
+  def initialize(piece, from:, to:, takes:, castle: false)
     @piece = piece
     @from = from
     @to = to
     @takes = takes
+    @castle = castle
   end
 
   def en_passant?
