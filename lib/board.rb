@@ -135,18 +135,19 @@ class Board
     # add the captured piece to the captured_pieces
     unless old_piece.nil?
       @captured_pieces << old_piece
-      # set takes to true if a piece was captured
+      # set takes to the piece
       takes = old_piece
     end
 
-    prev_moves << Move.new(piece, from: from, to: to, takes: takes)
+    @prev_moves << Move.new(piece.clone, from: from, to: to, takes: takes)
+    piece.has_moved = true
     update_pieces
 
     return old_piece || true
   end
 
   def take_back_turn
-    move = prev_moves.pop
+    move = @prev_moves.pop
 
     move.reverse(self)
 

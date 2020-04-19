@@ -1,13 +1,15 @@
 class Piece
 
   attr_reader :position, :row, :col, :color
+  attr_accessor :has_moved
 
-  def initialize(position:, color:)
+  def initialize(position:, color:, has_moved: false)
     # position is an array of [col, row], which each can be between 0..7
     @position = position
     @col = @position[0]
     @row = @position[1]
     @color = color
+    @has_moved = has_moved
   end
 
   def position=(arr)

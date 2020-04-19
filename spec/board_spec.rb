@@ -202,6 +202,18 @@ RSpec.describe Board do
       expect(board[4, 6].piece.position).to eq [4, 6]
     end
 
+    it "updates the #has_moved variable of the piece" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+
+      before = board[4, 0].piece.has_moved
+      board.move_piece([4, 0], [4, 1])
+      after = board[4, 1].piece.has_moved
+
+      expect(before).to eq false
+      expect(after).to eq true
+    end
+
     # these may go into another method
     it "can castle long"
 
@@ -313,6 +325,19 @@ RSpec.describe Board do
       expect(board[1, 3].piece.possible_moves(board)).to match_array([
         [1, 2], [0, 2]
       ])
+    end
+
+    it "remembers if the piece was moved before" do
+      board = Board.new
+      board.place_piece([4, 0], piece: :King, color: "w")
+      board.move_piece([4, 0], [4, 1])
+
+      before = board[4, 1].piece.has_moved
+      board.take_back_turn
+      after = board[4, 0].piece.has_moved
+
+      expect(before).to eq true
+      expect(after).to eq false
     end
   end
 
