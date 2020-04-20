@@ -131,6 +131,12 @@ class Board
       end
     end
 
+    # check if a pawn is able to get promoted
+    if piece.instance_of?(Pawn) and ( to[1] == 0 or to[1] == 7)
+      new_piece = piece.promote
+      place_piece(to, piece: new_piece, color: piece.color)
+    end
+
     # add the captured piece to the captured_pieces
     unless old_piece.nil?
       @captured_pieces << old_piece

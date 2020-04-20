@@ -214,7 +214,18 @@ RSpec.describe Board do
       expect(after).to eq true
     end
 
-    it "asks for a pawn to be promoted when it reaches the end row"
+    it "asks for a pawn to be promoted when it reaches the end row" do
+      board = Board.new
+      board.place_piece([6, 1], piece: :Pawn, color: "b")
+      pawn = board[6, 1].piece
+      allow(pawn).to receive(:promote).and_return(:Queen)
+
+      board.move_piece([6, 1], [6, 0])
+
+      expect(pawn).to have_received(:promote)
+      expect(board[6, 0].piece).to be_instance_of(Queen)
+      expect(board[6, 0].piece.color).to eq "b"
+    end
   end
 
   describe "#castle_short" do
