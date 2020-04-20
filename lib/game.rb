@@ -3,7 +3,6 @@ require_relative './turn_tracker.rb'
 
 class Game
 
-
   LETTER_TO_NUMBERS = {
     "a" => 0,
     "b" => 1,
@@ -79,9 +78,16 @@ class Game
 
           # check if the game has ended
           if @board.checkmate?(@current.other_color)
-            puts "CHECKMATE"
-            @winner = @current
-            throw :game_over
+            if @board.check?(@current.other_color)
+              puts "CHECKMATE"
+              @winner = @current
+              throw :game_over
+            else
+              # if there is a "checkmate", meaning the opponent has no legal
+              # moves, but he or she is not in check, then it is a Stalemate
+              puts "REMIS"
+              throw :game_over
+            end
           end
         end
 
@@ -225,13 +231,15 @@ class Game
       player_setup(players: "new")
       @current = @tracker.current
       @saved = false
+      @winner = false
 
     elsif name == "debug"
-      debug_board_setup
+      debug_board_setup_1
 
       player_setup(players: "new")
       @current = @tracker.current
       @saved = false
+      @winner = false
     else
       # load the game with the name name
       # it needs to setup:
@@ -240,6 +248,7 @@ class Game
       # @tracker
       # @saved
       # @players
+      # @winner
     end
 
     puts @board
@@ -285,6 +294,17 @@ class Game
     @board.place_piece([3, 4], piece: :Knight, color: "w")
     @board.place_piece([4, 3], piece: :Knight, color: "w")
     @board.place_piece([4, 4], piece: :Knight, color: "b")
+
+    @board
+  end
+
+  def debug_board_setup_1
+    @board = Board.new
+
+    @board.place_piece([7, 7], piece: :King, color: "b")
+    @board.place_piece([7, 5], piece: :King, color: "w")
+
+    @board.place_piece([5, 5], piece: :Rook, color: "w")
 
     @board
   end
