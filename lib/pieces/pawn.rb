@@ -24,21 +24,25 @@ class Pawn < Piece
 
     # first check the square ahead of the pawn
     s1 = [@col, @row.send(method, 1)]
-    moves << s1 unless board[*s1].occupied?
+    if s1[1] >= 0 and s1 [1] <= 7
+      if !board[*s1].occupied?
+        moves << s1
+        # and if it is the home row, also check the next one
+        if @row == home_row
+          s2 = [@col, @row.send(method, 2)]
+          moves << s2 unless board[*s2].occupied?
+        end
+      end
 
-    if @row == home_row
-      s2 = [@col, @row.send(method, 2)]
-      moves << s2 unless board[*s2].occupied?
-    end
-
-    # next check the two squares diagonally
-    possible = [
-      [@col + 1, @row.send(method, 1)],
-      [@col - 1, @row.send(method, 1)]
-    ]
-    possible.each do |s|
-      next if s.any? { |el| el > 7 or el < 0 }
-      moves << s if board[*s].occupied? and board[*s].piece.color != @color
+      # next check the two squares diagonally
+      possible = [
+        [@col + 1, @row.send(method, 1)],
+        [@col - 1, @row.send(method, 1)]
+      ]
+      possible.each do |s|
+        next if s.any? { |el| el > 7 or el < 0 }
+        moves << s if board[*s].occupied? and board[*s].piece.color != @color
+      end
     end
 
     # finally check en passant
