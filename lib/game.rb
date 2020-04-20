@@ -165,7 +165,7 @@ class Game
           puts
         end
       when "black_moves"
-        @board.black_piece.each do |p|
+        @board.black_pieces.each do |p|
           print p
           print p.position
           print ": "
