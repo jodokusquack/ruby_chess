@@ -57,4 +57,37 @@ class Pawn < Piece
     return moves
 
   end
+
+  def promote
+    pieces = {
+      q: :Queen,
+      r: :Rook,
+      b: :Bishop,
+      k: :Knight
+    }
+
+    if @color == "w"
+      q = "♛"
+      r = "♜"
+      b = "♝"
+      k = "♞"
+    else
+      q = "♕"
+      r = "♖"
+      b = "♗"
+      k = "♘"
+    end
+
+    puts"What do you want to promote to?
+( 'Q': #{q} | 'R': #{r} | 'B': #{b} | 'K': #{k} )"
+
+    allowed = ["q", "r", "b", "k"]
+    input = ""
+    loop do
+      input = gets.chomp.downcase
+      break if allowed.include?(input)
+    end
+
+    return pieces[input.to_sym]
+  end
 end
