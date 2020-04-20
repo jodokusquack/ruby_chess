@@ -2,6 +2,17 @@ require_relative './pieces/pawn.rb'
 
 class Move
 
+  N_TO_L = {
+    0 => "a",
+    1 => "b",
+    2 => "c",
+    3 => "d",
+    4 => "e",
+    5 => "f",
+    6 => "g",
+    7 => "h"
+  }
+
   attr_accessor :piece, :from, :to, :takes, :castle
 
   def initialize(piece, from:, to:, takes:, castle: false)
@@ -19,8 +30,10 @@ class Move
   def to_s
     if @piece == "New Game"
       ""
+    elsif takes != false
+      "#{N_TO_L[from[0]]}#{from[1]+1} takes #{N_TO_L[to[0]]}#{to[1]+1}"
     else
-      "#{from} -> #{to}"
+      "#{N_TO_L[from[0]]}#{from[1]+1} -> #{N_TO_L[to[0]]}#{to[1]+1}"
     end
   end
 
