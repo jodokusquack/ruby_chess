@@ -12,6 +12,15 @@ class Piece
     @has_moved = has_moved
   end
 
+  def to_json
+    {
+      type: self.class.to_s,
+      pos: @position,
+      color: @color,
+      has_moved: @has_moved
+    }
+  end
+
   def position=(arr)
     @position = arr
     @col = arr[0]

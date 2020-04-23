@@ -12,6 +12,16 @@ class Square
     !@piece.nil?
   end
 
+  def to_json
+    piece = nil
+    piece = @piece.to_json if !@piece.nil?
+
+    {
+      color: @color,
+      piece: piece
+    }
+  end
+
   def to_s
     # either return piece.to_s or a square with color
     if occupied?

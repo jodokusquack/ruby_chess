@@ -7,8 +7,7 @@ class Board
 
   attr_accessor :black_pieces, :white_pieces, :squares, :captured_pieces, :prev_moves
 
-
-  def initialize(squares: nil, captured_pieces: [], prev_moves: [], current_player: "w")
+  def initialize(squares: nil, captured_pieces: [], prev_moves: [])
     # create a default value for the squares
     squares_default = (0..7).collect do |i|
       (0..7).collect do |j|
@@ -20,7 +19,18 @@ class Board
     update_pieces
     @captured_pieces = captured_pieces
     @prev_moves = prev_moves
-    @current_player = current_player
+  end
+
+  def to_json
+    squares = @squares.map { |col| col.map { |s| s.to_json } }
+    captured_pieces = @captured_pieces.map { |p| p.to_json }
+    prev_moves = @prev_moves.map { |m| m.to_json }
+
+    {
+      squares: squares,
+      captured_pieces: captured_pieces,
+      prev_moves: prev_moves
+    }
   end
 
   def [](col, row)

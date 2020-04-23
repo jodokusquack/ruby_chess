@@ -23,6 +23,23 @@ class Move
     @castle = castle
   end
 
+  def to_json
+    # @piece is usually a piece but for the first move it is a String
+    # with the content "New Game"
+    piece = @piece.is_a?(String) ? @piece : @piece.to_json
+
+    # @takes can be false or an instance of a piece
+    takes = @takes ? @takes.to_json : @takes
+
+    {
+      piece: piece,
+      from: @from,
+      to: @to,
+      takes: takes,
+      castle: @castle
+    }
+  end
+
   def en_passant?
     @piece.instance_of?(Pawn) and (@to[1] - @from[1]).abs == 2
   end
