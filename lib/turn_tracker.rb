@@ -1,6 +1,6 @@
 class TurnTracker
 
-  attr_accessor :current
+  attr_accessor :current, :players
 
   def initialize(players:, current_color: "w")
     @players = players
@@ -15,5 +15,14 @@ class TurnTracker
     end
 
     @current
+  end
+
+  def to_json
+    players = @players.map { |p| p.to_json }
+
+    {
+      current: @current.to_json,
+      players: players
+    }
   end
 end

@@ -3,6 +3,8 @@ require_relative './turn_tracker.rb'
 
 class Game
 
+  SAVED_GAMES_PATH = File.expand_path("../../saved_games", __FILE__)
+
   LETTER_TO_NUMBERS = {
     "a" => 0,
     "b" => 1,
@@ -16,6 +18,11 @@ class Game
 
   def initialize
     @winner = false
+
+    # create a folder for saved_games
+    unless Dir.exist?(SAVED_GAMES_PATH)
+      Dir.mkdir(SAVED_GAMES_PATH)
+    end
   end
 
   def start
@@ -121,6 +128,13 @@ class Game
 
   private
 
+  def to_json
+    {
+      board: @board.to_json,
+      tracker: @tracker.to_json
+    }
+  end
+
   def castle(type)
     if type == "short"
       result = @board.castle_short(@current.color)
@@ -141,6 +155,7 @@ class Game
   def special_action(match)
     if    match[:save]
       save_game
+      display_fresh_board
     elsif match[:exit]
       exit_game
     elsif match[:quit]
@@ -421,14 +436,74 @@ class Game
   end
 
   def save_game
-    puts "SAVING..."
-    # ask for the save slot (max 3) or
-    # which one to overwrite
-    #
+    prev_saves = Dir["*save*", base: SAVED_GAMES_PATH]
+    puts prev_saves
+    num = if prev_saves.length >= 3
+      # if there are already 3 saved games, you have to overwrite one
+      overwrite_save
+    else
+      (0..2).each do |n|
+        if !prev_saves.include?("save#{n}")
+          break n
+        end
+      end
+    end
+
+    if num.nil?
+      puts "Cancelled"
+      return
+    end
+
+    file_name = "save#{num}"
+    file_path = File.join(SAVED_GAMES_PATH, file_name)
+
+    File.write(file_path, to_json)
+
     # save and set @saved to true
+    puts "Game was saved on slot #{num}."
+    puts
     @saved = true
-    #
-    # ask if want to continue
+  end
+
+  def overwrite_save
+    system "clear"
+    puts "You have already saved 3 games. Please select a slot to overwrite:"
+    puts
+    options = display_saved_games
+
+    puts "Enter any non-number to cancel!"
+
+    input = ""
+
+    loop do
+      input = gets.chomp
+      if input.match?(/[^\d]/)
+        return nil
+      elsif options.include?(input)
+        return input.to_i - 1
+      else
+        puts "The entered save state doesn't exist. Please enter another number."
+      end
+    end
+  end
+
+  def display_saved_games
+    saves = Dir["save*", base: SAVED_GAMES_PATH]
+    saves.sort!
+    options = []
+
+    saves.each do |save|
+      number = save[-1]
+      time = File.open(File.join(SAVED_GAMES_PATH, save), mode = "r") do |f|
+        f.mtime
+      end
+      print "[#{number.to_i + 1}]     #{time.strftime("Created at: %c")}"
+      puts
+      puts
+      options << (number.to_i + 1).to_s
+    end
+
+    options
   end
 
   def exit_game
@@ -472,3 +547,5 @@ class Game
   end
 end
 
+g = Game.new
+g.start

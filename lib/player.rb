@@ -2,14 +2,15 @@ class Player
 
   attr_accessor :color, :other_color
 
-  def initialize( color: , has_castled: false)
+  def initialize(color:)
     @color = color
-    @has_castled = has_castled
     @other_color = @color == "w" ? "b":"w"
   end
 
-  def castled?
-    @has_castled
+  def to_json
+    {
+      color: @color
+    }
   end
 
   def fetch_instructions
