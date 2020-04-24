@@ -39,6 +39,37 @@ class Game
     puts "Thanks for playing!"
   end
 
+  def decode_instructions(instructions)
+    m = instructions.match(/.*(?<from>[a-h][1-8]).*(?<to>[a-h][1-8]).*/)
+
+    return false, false if m.nil? or m.captures.length != 2
+
+    from_col = LETTER_TO_NUMBERS[m[:from][0]]
+    from_row = m[:from][1].to_i - 1
+
+    from = [from_col, from_row]
+
+    to_col = LETTER_TO_NUMBERS[m[:to][0]]
+    to_row = m[:to][1].to_i - 1
+
+    to = [to_col, to_row]
+
+    return from, to
+  end
+
+  private
+
+  #####################
+  # SPECIAL FUNCTIONS #
+  #####################
+
+  def to_json
+    JSON.generate({
+      board: @board.to_json,
+      tracker: @tracker.to_json
+    })
+  end
+
   def play
     catch :game_over do
       loop do
@@ -63,7 +94,6 @@ class Game
           from, to = decode_instructions(input)
           if from == false
             display_fresh_board
-            puts "DIDN'T UNDERSTAND INPUT"
             puts malformed_input_message(input)
             puts
             redo
@@ -72,7 +102,6 @@ class Game
           success = @board.move_piece(from, to)
           if success == false
             display_fresh_board
-            puts "THE MOVE IS ILLEGAL"
             puts illegal_move_message(input)
             puts
             redo
@@ -88,12 +117,14 @@ class Game
           if @board.checkmate?(@current.other_color)
             if @board.check?(@current.other_color)
               puts "CHECKMATE"
+              puts
               @winner = @current
               throw :game_over
             else
               # if there is a "checkmate", meaning the opponent has no legal
               # moves, but he or she is not in check, then it is a Stalemate
               puts "REMIS"
+              puts
               throw :game_over
             end
           end
@@ -109,51 +140,8 @@ class Game
     ask_to_continue
   end
 
-  def decode_instructions(instructions)
-    m = instructions.match(/.*(?<from>[a-h][1-8]).*(?<to>[a-h][1-8]).*/)
-
-    return false, false if m.nil? or m.captures.length != 2
-
-    from_col = LETTER_TO_NUMBERS[m[:from][0]]
-    from_row = m[:from][1].to_i - 1
-
-    from = [from_col, from_row]
-
-    to_col = LETTER_TO_NUMBERS[m[:to][0]]
-    to_row = m[:to][1].to_i - 1
-
-    to = [to_col, to_row]
-
-    return from, to
-  end
-
-  private
-
-  def to_json
-    JSON.generate({
-      board: @board.to_json,
-      tracker: @tracker.to_json
-    })
-  end
-
-  def castle(type)
-    if type == "short"
-      result = @board.castle_short(@current.color)
-    elsif type == "long"
-      result = @board.castle_long(@current.color)
-    end
-
-    if result == false
-      puts illegal_move_message("Castling")
-      puts
-    else
-      @saved = false
-      display_fresh_board
-      @current = @tracker.next
-    end
-  end
-
   def special_action(match)
+    # this code handles every special command that can be entered during a game
     if    match[:save]
       save_game
     elsif match[:exit]
@@ -207,6 +195,27 @@ class Game
     end
   end
 
+  def castle(type)
+    if type == "short"
+      result = @board.castle_short(@current.color)
+    elsif type == "long"
+      result = @board.castle_long(@current.color)
+    end
+
+    if result == false
+      puts illegal_move_message("Castling")
+      puts
+    else
+      @saved = false
+      display_fresh_board
+      @current = @tracker.next
+    end
+  end
+
+  ########################
+  # GAME SETUP AND STUFF #
+  ########################
+
   def ask_for_game_type
     system "clear"
     puts "
@@ -240,6 +249,7 @@ class Game
     system "clear"
 
     if name == "new"
+      # set up a new game
       puts instructions
 
       # sets up @board
@@ -251,6 +261,7 @@ class Game
       @winner = false
 
     elsif name == "debug"
+      # debug option, to set up a special game for debugging reasons
       debug_board_setup_1
 
       player_setup(players: "new")
@@ -258,6 +269,7 @@ class Game
       @saved = false
       @winner = false
     else
+      # load the game with the name name
       file_contents = File.read(File.join(SAVED_GAMES_PATH, name))
       game = JSON.parse(file_contents)
       # @board and @tracker have to be set up form the JSON, the rest can
@@ -270,13 +282,30 @@ class Game
 
       @saved = false
       @winner = false
-
     end
 
     puts @board
   end
 
+  def player_setup(players:, current_color: "w")
+    # this method creates an @players array and sets up a TurnTracker
+    # with it
+    if players == "new"
+      @players = [Player.new(color: "w"), Player.new(color: "b")]
+      @tracker = TurnTracker.new(players: @players)
+    else
+      @players = players
+      @tracker = TurnTracker.new(players: @players,
+                                 current_color: current_color)
+    end
+  end
+
+  ##########
+  # BOARDS #
+  ##########
+
   def standard_board_setup
+    # sets up a standard board with the standard pieces
     @board = Board.new
 
     pieces = [:Rook, :Knight, :Bishop, :Queen, :King, :Bishop, :Knight, :Rook]
@@ -298,6 +327,8 @@ class Game
   end
 
   def debug_board_setup
+    # these are special boards setup so that I can test a few funcions like
+    # castling and  moving in and out of check easily
     @board = Board.new
 
     @board.place_piece([4, 0], piece: :King, color: "w")
@@ -321,6 +352,7 @@ class Game
   end
 
   def debug_board_setup_1
+    # for testing a stalemate configuration
     @board = Board.new
 
     @board.place_piece([7, 7], piece: :King, color: "b")
@@ -331,18 +363,9 @@ class Game
     @board
   end
 
-  def player_setup(players:, current_color: "w")
-    # this method creates an @players array and sets up a TurnTracker
-    # with it
-    if players == "new"
-      @players = [Player.new(color: "w"), Player.new(color: "b")]
-      @tracker = TurnTracker.new(players: @players)
-    else
-      @players = players
-      @tracker = TurnTracker.new(players: @players,
-                                 current_color: current_color)
-    end
-  end
+  ############
+  # MESSAGES #
+  ############
 
   def instructions
     "
@@ -390,6 +413,14 @@ class Game
 "
   end
 
+  def winning_message
+    if @winner != false
+      "Congratulations! #{@winner.full_color} won!"
+    else
+      "Remis! The game has ended without a winner."
+    end
+  end
+
   def last_move
     lm = @board.last_move
     if lm.piece == "New Game"
@@ -411,23 +442,9 @@ class Game
     puts
   end
 
-  def winning_message
-    if @winner != false
-      "Congratulations! #{@winner.full_color} won!"
-    else
-      "Remis! The game has ended without a winner."
-    end
-  end
-
-  def ask_to_continue
-    puts "Do you want to play another round? :) [Y/n]"
-
-    input = gets.chomp.downcase
-
-    if input[0] == "n"
-      throw :end_game
-    end
-  end
+  ####################
+  # SAVING / LOADING #
+  ####################
 
   def select_saved_game
     saves = Dir["save*", base: SAVED_GAMES_PATH]
@@ -552,6 +569,20 @@ class Game
     end
   end
 
+  #####################
+  # QUITTING THE GAME #
+  #####################
+
+  def ask_to_continue
+    puts "Do you want to play another round? :) [Y/n]"
+
+    input = gets.chomp.downcase
+
+    if input[0] == "n"
+      throw :end_game
+    end
+  end
+
   def exit_game
     confirmed = confirm_quit
     if confirmed
@@ -593,5 +624,3 @@ class Game
   end
 end
 
-g = Game.new
-g.start

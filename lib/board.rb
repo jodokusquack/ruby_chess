@@ -64,7 +64,18 @@ class Board
     return repr
   end
 
+  def last_move
+    prev_moves[-1] or Move.new("New Game", from:[], to:[], takes: false)
+  end
+
+  def print_moves
+    prev_moves.reverse.each do |move|
+      puts move
+    end
+  end
+
   def place_piece(position, piece:, color:)
+    # creates and places a piece on a square
     return false if position.max > 7 or position.min < 0
 
     new_piece = Kernel.const_get(piece).new(position: position, color: color)
@@ -75,53 +86,10 @@ class Board
     return new_piece
   end
 
-  def move_piece_to_possible(from, to)
-    # just for moving a piece without checking for check, otherwise equal
-    # to move_piece
-    takes = false
-
-    piece = self[*from].piece
-
-    return false if piece.nil?
-    return false if !piece.possible_moves(self).include?(to)
-    # return false if in check afterwards
-
-    # first copy the piece that is at "to"
-    old_piece = self[*to].piece
-
-    # then copy over the piece to move (from "from" to "to")
-    self[*to].piece = piece
-
-    # update the position of the moved piece
-    piece.position = to
-
-    #delete the old piece
-    self[*from].piece = nil
-
-    # if the last piece from the last move can be captured by en passant
-    # and the current piece is a Pawn, check if this was the case
-    if piece.instance_of?(Pawn) and last_move.en_passant?
-      other_position = last_move.to
-      if (to[1] - other_position[1]).abs == 1 and to[0] == other_position[0]
-        old_piece = self[*other_position].piece
-        self[*other_position].piece = nil
-      end
-    end
-
-    # add the captured piece to the captured_pieces
-    unless old_piece.nil?
-      @captured_pieces << old_piece
-      # set takes to true if a piece was captured
-      takes = old_piece
-    end
-
-    prev_moves << Move.new(piece, from: from, to: to, takes: takes)
-    update_pieces
-
-    return old_piece || true
-  end
-
   def move_piece(from , to)
+    # moves a piece from one square to another, but only if the move is legal.
+    # also adds the move to the array of last_moves
+    #
     # assume that no piece will be taken
     takes = false
 
@@ -172,27 +140,52 @@ class Board
     return old_piece || true
   end
 
+  def move_piece_to_possible(from, to)
+    # just for moving a piece without checking for check
+    takes = false
+    piece = self[*from].piece
+
+    return false if piece.nil?
+    return false if !piece.possible_moves(self).include?(to)
+
+    old_piece = self[*to].piece
+    self[*to].piece = piece
+    piece.position = to
+    self[*from].piece = nil
+
+    if piece.instance_of?(Pawn) and last_move.en_passant?
+      other_position = last_move.to
+      if (to[1] - other_position[1]).abs == 1 and to[0] == other_position[0]
+        old_piece = self[*other_position].piece
+        self[*other_position].piece = nil
+      end
+    end
+
+    unless old_piece.nil?
+      @captured_pieces << old_piece
+      takes = old_piece
+    end
+
+    prev_moves << Move.new(piece, from: from, to: to, takes: takes)
+    update_pieces
+
+    return old_piece || true
+  end
+
+
   def shift_piece(from , to)
+    # move a piece form one square to another, irregardless of if the move is
+    # even possible. (Needed for moving the King and Rook in a castle)
     takes = false
 
     piece = self[*from].piece
-
-    # first copy the piece that is at "to"
     old_piece = self[*to].piece
-
-    # then copy over the piece to move (from "from" to "to")
     self[*to].piece = piece
-
-    # update the position of the moved piece
     piece.position = to
-
-    #delete the old piece
     self[*from].piece = nil
 
-    # add the captured piece to the captured_pieces
     unless old_piece.nil?
       @captured_pieces << old_piece
-      # set takes to the piece
       takes = old_piece
     end
 
@@ -204,50 +197,12 @@ class Board
   end
 
   def take_back_turn
+    # undoes a turn
     move = @prev_moves.pop
 
     move.reverse(self)
 
     update_pieces
-  end
-
-  def last_move
-    prev_moves[-1] or Move.new("New Game", from:[], to:[], takes: false)
-  end
-
-  def print_moves
-    prev_moves.reverse.each do |move|
-      puts move
-    end
-  end
-
-  def can_castle_short?(color)
-    if color == "w"
-      pieces = @white_pieces
-    else
-      pieces = @black_pieces
-    end
-
-    king = pieces.find { |p| p.instance_of?(King) }
-    if king.has_moved == false and !self.check?(color)
-      positions = [[5, king.row], [6, king.row]]
-      squares = [self[*positions[0]], self[*positions[1]]]
-      if !squares.any? { |s| s.piece != nil }
-        rook = self[7, king.row].piece
-        if rook.instance_of?(Rook) and rook.has_moved == false
-          check_anywhere = positions.any? do |pos|
-            self.shift_piece([4, king.row], pos)
-            in_check = self.check?(color)
-            self.take_back_turn
-            in_check
-          end
-          if check_anywhere != true
-            return true
-          end
-        end
-      end
-    end
-    false
   end
 
   def castle_short(color)
@@ -278,35 +233,6 @@ class Board
                         takes: false, castle: "short")
 
     return true
-  end
-
-  def can_castle_long?(color)
-    if color == "w"
-      pieces = @white_pieces
-    else
-      pieces = @black_pieces
-    end
-
-    king = pieces.find { |p| p.instance_of?(King) }
-    if king.has_moved == false and !self.check?(color)
-      positions = [[3, king.row], [2, king.row], [1, king.row]]
-      squares = [self[*positions[0]], self[*positions[1]], self[*positions[2]]]
-      if !squares.any? { |s| s.piece != nil }
-        rook = self[0, king.row].piece
-        if rook.instance_of?(Rook) and rook.has_moved == false
-          check_anywhere = positions[0..1].any? do |pos|
-            self.shift_piece([4, king.row], pos)
-            in_check = self.check?(color)
-            self.take_back_turn
-            in_check
-          end
-          if check_anywhere != true
-            return true
-          end
-        end
-      end
-    end
-    false
   end
 
   def castle_long(color)
@@ -357,6 +283,64 @@ class Board
 
   private
 
+  def can_castle_short?(color)
+    if color == "w"
+      pieces = @white_pieces
+    else
+      pieces = @black_pieces
+    end
+
+    king = pieces.find { |p| p.instance_of?(King) }
+    if king.has_moved == false and !self.check?(color)
+      positions = [[5, king.row], [6, king.row]]
+      squares = [self[*positions[0]], self[*positions[1]]]
+      if !squares.any? { |s| s.piece != nil }
+        rook = self[7, king.row].piece
+        if rook.instance_of?(Rook) and rook.has_moved == false
+          check_anywhere = positions.any? do |pos|
+            self.shift_piece([4, king.row], pos)
+            in_check = self.check?(color)
+            self.take_back_turn
+            in_check
+          end
+          if check_anywhere != true
+            return true
+          end
+        end
+      end
+    end
+    false
+  end
+
+  def can_castle_long?(color)
+    if color == "w"
+      pieces = @white_pieces
+    else
+      pieces = @black_pieces
+    end
+
+    king = pieces.find { |p| p.instance_of?(King) }
+    if king.has_moved == false and !self.check?(color)
+      positions = [[3, king.row], [2, king.row], [1, king.row]]
+      squares = [self[*positions[0]], self[*positions[1]], self[*positions[2]]]
+      if !squares.any? { |s| s.piece != nil }
+        rook = self[0, king.row].piece
+        if rook.instance_of?(Rook) and rook.has_moved == false
+          check_anywhere = positions[0..1].any? do |pos|
+            self.shift_piece([4, king.row], pos)
+            in_check = self.check?(color)
+            self.take_back_turn
+            in_check
+          end
+          if check_anywhere != true
+            return true
+          end
+        end
+      end
+    end
+    false
+  end
+
   def white_in_check?
     white_king = @white_pieces.find { |piece| piece.instance_of?(King) }
 
@@ -382,16 +366,22 @@ class Board
   end
 
   def determine_checkmate(pieces)
+    # maybe the name isn't chosen well, because it could also be a stalemate if
+    # this function returns true
+    #
+    # assume there is a mate
     mate = true
     pieces.each do |piece|
       legal = piece.legal_moves(self)
       mate = false if !legal.empty?
+      # if any piece has a legal move, mate gets set to false
       break if mate == false
     end
     return mate
   end
 
   def update_pieces
+    # creates or updates an array each for the white and black pieces
     @white_pieces = []
     @black_pieces = []
     @squares.flatten.each do |square|
