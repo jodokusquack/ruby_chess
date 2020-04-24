@@ -1,14 +1,7 @@
 require './lib/player.rb'
-require 'stringio'
 
 RSpec.describe Player do
   context 'when creating a new player' do
-    it "hasn't castled yet" do
-      player = Player.new(color: "w")
-
-      expect(player.castled?).to eq false
-    end
-
     it "has the color white" do
       player = Player.new(color: "w")
 
