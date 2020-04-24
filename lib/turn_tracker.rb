@@ -1,5 +1,14 @@
 class TurnTracker
 
+  # class methods
+  def self.from_json(tracker)
+    players = tracker["players"].map { |p| Player.from_json(p) }
+    current_color = Player.from_json(tracker["current"]).color
+
+    TurnTracker.new(players: players, current_color: current_color)
+  end
+
+  # instance methods
   attr_accessor :current, :players
 
   def initialize(players:, current_color: "w")

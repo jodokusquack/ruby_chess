@@ -1,5 +1,10 @@
 class Player
 
+  # class methods
+  def self.from_json(player)
+    Player.new(color: player["color"])
+  end
+
   attr_accessor :color, :other_color
 
   def initialize(color:)

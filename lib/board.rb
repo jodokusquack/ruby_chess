@@ -5,6 +5,17 @@ Dir['./lib/pieces/*.rb'].each { |file| require file }
 
 class Board
 
+  # class methods
+  def self.from_json(board)
+    squares = board["squares"].map { |col| col.map { |s| Square.from_json(s) } }
+    captured_pieces = board["captured_pieces"].map { |p| Piece.from_json(p) }
+    prev_moves = board["prev_moves"].map { |m| Move.from_json(m) }
+
+    Board.new(squares: squares, captured_pieces: captured_pieces,
+              prev_moves: prev_moves)
+  end
+
+  # instance methods
   attr_accessor :black_pieces, :white_pieces, :squares, :captured_pieces, :prev_moves
 
   def initialize(squares: nil, captured_pieces: [], prev_moves: [])

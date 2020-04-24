@@ -1,5 +1,18 @@
 class Piece
 
+  # class methods
+  def self.from_json(piece)
+    type = piece["type"]
+    position = piece["position"]
+    color = piece["color"]
+    has_moved = piece["has_moved"]
+
+
+    Kernel.const_get(type).new(position: position, color: color,
+                               has_moved: has_moved)
+  end
+
+  # instance methods
   attr_reader :position, :row, :col, :color
   attr_accessor :has_moved
 
@@ -15,7 +28,7 @@ class Piece
   def to_json
     {
       type: self.class.to_s,
-      pos: @position,
+      position: @position,
       color: @color,
       has_moved: @has_moved
     }

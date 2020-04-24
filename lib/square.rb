@@ -1,5 +1,17 @@
 class Square
 
+  # class methods
+  def self.from_json(square)
+    if square["piece"].nil?
+      piece = nil
+    else
+      piece = Piece.from_json(square["piece"])
+    end
+
+    new(color: square["color"], piece: piece)
+  end
+
+  # instance methods
   attr_accessor :color, :piece
 
   def initialize(color:, piece: nil)

@@ -2,6 +2,26 @@ require_relative './pieces/pawn.rb'
 
 class Move
 
+  # class methods
+  def self.from_json(move)
+    if move["piece"].is_a?(String)
+      piece = move["piece"]
+    else
+      piece = Piece.from_json(move["piece"])
+    end
+    from = move["from"]
+    to = move["to"]
+    castle = move["castle"]
+
+    if move["takes"] == false
+      takes = move["takes"]
+    else
+      takes = Piece.from_json(move["takes"])
+    end
+
+    Move.new(piece, from: from, to: to, takes: takes, castle: castle)
+  end
+
   N_TO_L = {
     0 => "a",
     1 => "b",
@@ -13,6 +33,7 @@ class Move
     7 => "h"
   }
 
+  # instance methods
   attr_accessor :piece, :from, :to, :takes, :castle
 
   def initialize(piece, from:, to:, takes:, castle: false)

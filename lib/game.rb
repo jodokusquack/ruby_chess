@@ -1,5 +1,6 @@
 require_relative './board.rb'
 require_relative './turn_tracker.rb'
+require 'json'
 
 class Game
 
@@ -129,10 +130,10 @@ class Game
   private
 
   def to_json
-    {
+    JSON.generate({
       board: @board.to_json,
       tracker: @tracker.to_json
-    }
+    })
   end
 
   def castle(type)
@@ -155,7 +156,6 @@ class Game
   def special_action(match)
     if    match[:save]
       save_game
-      display_fresh_board
     elsif match[:exit]
       exit_game
     elsif match[:quit]
@@ -198,9 +198,11 @@ class Game
         throw :game_over
       when "remis"
         throw :game_over
+      when "captured_pieces"
+        print @board.captured_pieces
+        puts
       else
         puts "No recognized debug option."
-        puts "'prev_moves', 'white_moves', 'black_moves'"
       end
     end
   end
@@ -256,14 +258,19 @@ class Game
       @saved = false
       @winner = false
     else
-      # load the game with the name name
-      # it needs to setup:
-      # @board
-      # @current
-      # @tracker
-      # @saved
-      # @players
-      # @winner
+      file_contents = File.read(File.join(SAVED_GAMES_PATH, name))
+      game = JSON.parse(file_contents)
+      # @board and @tracker have to be set up form the JSON, the rest can
+      # be constructed from these two
+      @board = Board.from_json(game["board"])
+      @tracker = TurnTracker.from_json(game["tracker"])
+
+      @current = @tracker.current
+      @players = @tracker.players
+
+      @saved = false
+      @winner = false
+
     end
 
     puts @board
@@ -423,31 +430,42 @@ class Game
   end
 
   def select_saved_game
-    puts "LOADING..."
-    puts "CHOOSING NEW GAME FOR NOW"
-    # show previously saved games
-    # show warning if no games were found
-    # display options for loading any of
-    # the saved games, or start a new one.
-    #
-    # return either the name of a saved game or "new"
-    # for now:
-    return "new"
+    saves = Dir["save*", base: SAVED_GAMES_PATH]
+    if saves.empty?
+      no_saved_games
+      return "new"
+    end
+
+    puts "Please choose a gameslot to load:"
+    puts
+    options = display_saved_games
+    options << "new"
+
+    num = loop do
+      input = gets.chomp
+      break input if options.include?(input)
+    end
+
+    if num == "new"
+      return num
+    else
+      return "save#{num.to_i - 1}"
+    end
   end
 
   def save_game
     prev_saves = Dir["*save*", base: SAVED_GAMES_PATH]
-    puts prev_saves
+
     num = if prev_saves.length >= 3
-      # if there are already 3 saved games, you have to overwrite one
-      overwrite_save
-    else
-      (0..2).each do |n|
-        if !prev_saves.include?("save#{n}")
-          break n
-        end
-      end
-    end
+            # if there are already 3 saved games, you have to overwrite one
+            overwrite_save
+          else
+            (0..2).each do |n|
+              if !prev_saves.include?("save#{n}")
+                break n
+              end
+            end
+          end
 
     if num.nil?
       puts "Cancelled"
@@ -460,7 +478,8 @@ class Game
     File.write(file_path, to_json)
 
     # save and set @saved to true
-    puts "Game was saved on slot #{num}."
+    puts
+    puts "Game was saved on slot #{num.to_i + 1}."
     puts
     @saved = true
   end
@@ -478,13 +497,16 @@ class Game
     loop do
       input = gets.chomp
       if input.match?(/[^\d]/)
+        display_fresh_board
         return nil
       elsif options.include?(input)
+        display_fresh_board
         return input.to_i - 1
       else
         puts "The entered save state doesn't exist. Please enter another number."
       end
     end
+
   end
 
   def display_saved_games
@@ -504,6 +526,30 @@ class Game
     end
 
     options
+  end
+
+  def no_saved_games
+    system "clear"
+    puts "
+    There are no previously saved games. Please choose another option:
+
+      * Start a new Game  -> Enter 'new'
+
+      * Exit              -> Enter 'exit'
+    "
+
+    allowed = ["new", "exit"]
+
+    action = loop do
+      input = gets.chomp.downcase
+      break input if allowed.include?(input)
+    end
+
+    if action == "new"
+      return "new"
+    else
+      exit_game
+    end
   end
 
   def exit_game
