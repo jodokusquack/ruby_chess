@@ -33,26 +33,5 @@ class King < Piece
 
     return moves
   end
-
-  def legal_moves(board)
-    # the king has a special legal_moves section, since he is not allowed
-    # to move into check, but has to move out of check if he is.
-    # That means we have just have to skip the shortcut if the piece is
-    # not in check, and always check if the king would be in check after
-    # the move.
-    reachable = possible_moves(board)
-
-    legal = []
-
-    reachable.each do |square|
-      board.move_piece_to_possible(@position, square)
-
-      legal << square if !board.check?(@color)
-
-      board.take_back_turn
-    end
-
-    return legal
-  end
 end
 

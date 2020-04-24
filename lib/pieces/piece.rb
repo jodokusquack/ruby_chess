@@ -60,11 +60,8 @@ class Piece
 
   def legal_moves(board)
     reachable = possible_moves(board)
-    # if the color of the piece isn't in check, all reachable squares are
-    # legal
-    return reachable if !board.check?(@color)
 
-    # otherwise check every possible move, for a possible check after it
+    # check every possible move, for a possible check after it
     legal = []
     reachable.each do |pos|
       # do the move
