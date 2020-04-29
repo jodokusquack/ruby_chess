@@ -347,6 +347,7 @@ class Board
     return false if white_king.nil?
 
     check = @black_pieces.find do |piece|
+      # it is important to use possible_moves here instead of legal_moves!
       piece.possible_moves(self).include? white_king.position
     end
 
