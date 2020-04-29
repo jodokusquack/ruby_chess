@@ -58,5 +58,7 @@ Then execute `chess.rb` by entering `./chess.rb`.
 You should of course first check the contents of the file before executing any
 file that you got from the Internet.
 
+Alternatively you can also play it online via repl.it [here](https://repl.it/@jodokusquack/rubychess).
+
 Thanks for playing! :)
 
